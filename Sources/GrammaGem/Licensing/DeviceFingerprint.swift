@@ -32,6 +32,11 @@ enum DeviceFingerprint {
         return cf.takeRetainedValue() as? String
     }
 
+    /// A friendly, human-readable name for this Mac (for the Devices screen).
+    static func deviceName() -> String {
+        Host.current().localizedName ?? ProcessInfo.processInfo.hostName
+    }
+
     private static func fallbackID() -> String {
         let key = "GrammaGem.fallbackDeviceID"
         if let existing = UserDefaults.standard.string(forKey: key) { return existing }

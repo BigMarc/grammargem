@@ -25,6 +25,15 @@ struct MenuBarContent: View {
 
             Divider()
 
+            actionRow(title: "Open GrammaGem…", shortcut: nil) {
+                app.showMainWindow()
+            }
+            actionRow(title: "Manage devices…", shortcut: nil) {
+                app.showMainWindow(select: .devices)
+            }
+
+            Divider()
+
             usageRow
 
             Divider()

@@ -13,7 +13,7 @@ final class LemonSqueezyClient {
 
     // MARK: - Endpoints
 
-    func activate(key: String, instanceName: String) async throws -> (instanceID: String, tier: Tier) {
+    func activate(key: String, instanceName: String) async throws -> ActivationResult {
         let res: LSActivateResponse = try await post(
             "licenses/activate",
             params: ["license_key": key, "instance_name": instanceName])
@@ -23,17 +23,23 @@ final class LemonSqueezyClient {
             throw LicenseError.serverMessage("Activation failed.")
         }
         let tier = try verifyAndResolveTier(meta: res.meta, licenseKey: res.license_key)
-        return (instance.id, tier)
+        return ActivationResult(
+            instanceID: instance.id, tier: tier,
+            usage: res.license_key?.activation_usage ?? 1,
+            limit: res.license_key?.activation_limit ?? tier.deviceCap)
     }
 
-    func validate(key: String, instanceID: String?) async throws -> (valid: Bool, tier: Tier) {
+    func validate(key: String, instanceID: String?) async throws -> ValidationResult {
         var params = ["license_key": key]
         if let instanceID { params["instance_id"] = instanceID }
         let res: LSValidateResponse = try await post("licenses/validate", params: params)
 
         if let err = res.error { throw mapServerError(err) }
         let tier = try verifyAndResolveTier(meta: res.meta, licenseKey: res.license_key)
-        return (res.valid, tier)
+        return ValidationResult(
+            valid: res.valid, tier: tier,
+            usage: res.license_key?.activation_usage ?? 0,
+            limit: res.license_key?.activation_limit ?? tier.deviceCap)
     }
 
     @discardableResult

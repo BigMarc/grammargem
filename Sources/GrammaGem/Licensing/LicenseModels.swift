@@ -6,7 +6,26 @@ struct LicenseRecord: Codable, Equatable {
     var instanceID: String          // Lemon Squeezy activation instance id
     var tier: Tier
     var lastValidated: Date
-    var activatedDevices: Int
+    var activatedAt: Date           // when this Mac was first activated
+    var deviceName: String          // friendly name of this Mac
+    var activationUsage: Int        // devices currently using the license
+    var activationLimit: Int        // device cap for the tier
+}
+
+/// Result of an activate call.
+struct ActivationResult {
+    let instanceID: String
+    let tier: Tier
+    let usage: Int
+    let limit: Int
+}
+
+/// Result of a validate call.
+struct ValidationResult {
+    let valid: Bool
+    let tier: Tier
+    let usage: Int
+    let limit: Int
 }
 
 // MARK: - Lemon Squeezy API response shapes (subset we rely on)

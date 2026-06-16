@@ -20,6 +20,10 @@ final class AppState: ObservableObject {
     let detector: AppDetector
     let hotkeys: HotkeyManager
     let dictionary: PersonalDictionary
+    let preferences: Preferences
+    let usage: UsageStats
+    let customModes: CustomModesStore
+    let snippets: SnippetStore
     private let capture: TextCapture
     let coordinator: TextReplacementCoordinator
 
@@ -30,6 +34,7 @@ final class AppState: ObservableObject {
 
     private var onboardingWindow: NSWindow?
     private var askWindow: NSWindow?
+    private var mainWindow: NSWindow?
 
     private init() {
         let harper = HarperEngine()
@@ -43,6 +48,10 @@ final class AppState: ObservableObject {
         capture = TextCapture()
         hotkeys = HotkeyManager()
         dictionary = PersonalDictionary()
+        preferences = Preferences()
+        usage = UsageStats()
+        customModes = CustomModesStore()
+        snippets = SnippetStore()
         coordinator = TextReplacementCoordinator(
             capture: capture, grammar: harper, ai: ai, gate: gate, detector: detector)
     }
@@ -81,14 +90,22 @@ final class AppState: ObservableObject {
     }
 
     func runFix() async {
-        present(await coordinator.handleFix())
+        let outcome = await coordinator.handleFix()
+        if case .replaced(let text) = outcome { usage.recordCorrection(words: wordCount(text)) }
+        present(outcome)
     }
 
     func runAsk() async {
         let instruction = askText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !instruction.isEmpty else { return }
-        present(await coordinator.handleAsk(instruction))
+        let outcome = await coordinator.handleAsk(instruction)
+        if case .replaced(let text) = outcome { usage.recordAIAction(words: wordCount(text)) }
+        present(outcome)
         askWindow?.close()
+    }
+
+    private func wordCount(_ s: String) -> Int {
+        s.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
     }
 
     /// Apply the Mode suggested by the frontmost app (App-Aware, paid).
@@ -101,7 +118,9 @@ final class AppState: ObservableObject {
             lastStatus = "No mode mapped for the current app."
             return
         }
-        present(await coordinator.handleApplyMode(mode))
+        let outcome = await coordinator.handleApplyMode(mode)
+        if case .replaced(let text) = outcome { usage.recordAIAction(words: wordCount(text)) }
+        present(outcome)
     }
 
     private func present(_ outcome: ProcessOutcome) {
@@ -143,6 +162,34 @@ final class AppState: ObservableObject {
         }
         NSApp.activate(ignoringOtherApps: true)
         onboardingWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    /// The full management window (devices, modes, settings, insights).
+    func showMainWindow(select section: MainSection? = nil) {
+        if mainWindow == nil {
+            let root = MainWindowView(initialSection: section ?? .dashboard)
+                .environmentObject(self)
+                .environmentObject(license)
+                .environmentObject(gate)
+                .environmentObject(model)
+                .environmentObject(permissions)
+                .environmentObject(dictionary)
+                .environmentObject(preferences)
+                .environmentObject(usage)
+                .environmentObject(customModes)
+                .environmentObject(snippets)
+            let host = NSHostingController(rootView: root)
+            let win = NSWindow(contentViewController: host)
+            win.title = "GrammaGem"
+            win.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+            win.setContentSize(NSSize(width: 940, height: 660))
+            win.minSize = NSSize(width: 820, height: 560)
+            win.isReleasedWhenClosed = false
+            win.center()
+            mainWindow = win
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        mainWindow?.makeKeyAndOrderFront(nil)
     }
 
     func showAsk() {

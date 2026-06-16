@@ -44,13 +44,15 @@ final class LicenseManager: ObservableObject {
 
         do {
             let instanceName = DeviceFingerprint.stableID()
-            let (instanceID, tier) = try await client.activate(key: key, instanceName: instanceName)
+            let result = try await client.activate(key: key, instanceName: instanceName)
             let rec = LicenseRecord(
-                key: key, instanceID: instanceID, tier: tier,
-                lastValidated: Date(), activatedDevices: tier.deviceCap)
+                key: key, instanceID: result.instanceID, tier: result.tier,
+                lastValidated: Date(), activatedAt: Date(),
+                deviceName: DeviceFingerprint.deviceName(),
+                activationUsage: result.usage, activationLimit: result.limit)
             Keychain.setObject(rec, account: account)
             record = rec
-            Log.licensing.info("Activated tier \(tier.rawValue, privacy: .public)")
+            Log.licensing.info("Activated tier \(result.tier.rawValue, privacy: .public)")
         } catch {
             lastError = error.localizedDescription
         }
@@ -63,10 +65,12 @@ final class LicenseManager: ObservableObject {
         guard force || Date().timeIntervalSince(rec.lastValidated) > interval else { return }
 
         do {
-            let (valid, tier) = try await client.validate(key: rec.key, instanceID: rec.instanceID)
-            if valid {
+            let result = try await client.validate(key: rec.key, instanceID: rec.instanceID)
+            if result.valid {
                 rec.lastValidated = Date()
-                rec.tier = tier
+                rec.tier = result.tier
+                rec.activationUsage = result.usage
+                rec.activationLimit = result.limit
                 Keychain.setObject(rec, account: account)
                 record = rec
             } else {

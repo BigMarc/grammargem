@@ -6,9 +6,16 @@ import Foundation
 /// TODO(real-integration): replace every `TODO_*` value with your real IDs.
 enum AppConfig {
     static let appName = "GrammaGem"
-    static let bundleIdentifier = "com.grammagem.app" // TODO(real-integration)
+    static let bundleIdentifier = "com.foundergem.grammagem" // TODO(real-integration)
     static let supportEmail = "support@grammagem.app" // TODO(real-integration)
     static let modelPortalURL = URL(string: "https://grammagem.app/license")! // TODO
+    static let websiteURL = URL(string: "https://grammagem.app")!
+    static let appVersion = "0.1.0"
+
+    // Legal entity (shown in About / legal).
+    static let companyName = "FounderGem LLC"
+    static let companyAddress = "1309 Coffeen Avenue STE 1200, Sheridan, WY 82801, USA"
+    static let copyright = "© 2026 FounderGem LLC"
 
     /// Lemon Squeezy License API (app talks to it directly — no server of ours).
     enum LemonSqueezy {

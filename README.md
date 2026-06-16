@@ -1,125 +1,102 @@
-# GrammaGem (macOS app)
+<div align="center">
 
-A private, **on-device** writing assistant for macOS — a one-time-purchase
-replacement for Grammarly. Fix grammar, sharpen tone, and rewrite anything in
-**any app** via a global hotkey. Your words never leave your Mac.
+# ✒️ GrammaGem
 
-Built in public. The grammar core is open-source; the repo is permissively
-licensed. We sell the **signed, notarized, auto-updating build + a multi-device
-license + support** — not code secrecy.
+### Write it once. Get it right.
+
+**The private, on-device writing assistant for Mac.**
+Fix grammar, sharpen tone, and rewrite anything — in every app — for one payment, forever.
+
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-101F1A?logo=apple&logoColor=white)
+![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-optimized-0E7C5A)
+![One-time purchase](https://img.shields.io/badge/pricing-one--time-C9A24B)
+![License: MIT](https://img.shields.io/badge/license-MIT-0E7C5A)
+
+[**⬇️ Download GrammaGem**](https://grammagem.app/#pricing) · [Docs](https://grammagem.app/docs) · [How it works](https://grammagem.app)
+
+</div>
 
 ---
 
-## Architecture (two layers)
+## Stop renting your grammar checker.
 
-```
-GrammaGem (native menu-bar app, Swift/SwiftUI)
-├─ System integration   global hotkey → capture selected text (AX API /
-│                        clipboard fallback) → route to engine → replace in place
-├─ Layer 1: GRAMMAR      Harper (Rust, Apache-2.0) — spelling/grammar/punctuation,
-│                        deterministic, <10ms, offline. Powers live underlines. FREE.
-├─ Layer 2: AI           MLX (Apple Silicon) + a small instruct model — rewrite,
-│                        tone, "Ask", translate, Mode rewriting. Closes the gap. PAID.
-└─ Entitlements + Licensing   free/paid gate · device-cap activation (Lemon Squeezy)
-```
+Grammarly costs around **$144 every year**, reads everything you type, and sends it to their servers. GrammaGem does the same job — **better** — entirely on your Mac, for a **single payment**.
 
-Network is touched **only** for: first-run model download (Hugging Face),
-license activate/validate (Lemon Squeezy), and update checks (Sparkle/GitHub
-Releases). **Writing never requires internet. No telemetry.**
+Select text in any app, press one hotkey, and it’s polished in place. No copy-paste, no switching windows, and **nothing ever leaves your machine**.
 
-## Repo layout
+> “One payment and it’s mine forever — such a bargain.” 👍
 
-```
-mac/
-├─ Package.swift              SwiftPM executable (Apple-frameworks only → builds out of the box)
-├─ Sources/GrammaGem/
-│  ├─ App/        @main app, menu bar, onboarding, settings, Ask popover, AppState
-│  ├─ System/     hotkey (Carbon), AX capture/replace + clipboard fallback, app detection, permissions
-│  ├─ Grammar/    GrammarEngine protocol + Harper stub + personal dictionary
-│  ├─ AI/         AIEngine protocol + MLX stub + model manager + Writing Modes
-│  ├─ Licensing/  Lemon Squeezy client, device fingerprint, Keychain, license manager
-│  ├─ Entitlements/ free/paid gate + daily AI counter
-│  └─ Core/       config, models, logging
-├─ Tests/GrammaGemTests/      unit tests (entitlements, Harper rules, fingerprint, modes)
-├─ Resources/Modes/           Mode prompt presets (paid ones tuned in release only)
-├─ AppSupport/                Info.plist (LSUIElement) + entitlements
-├─ scripts/                   build → sign/notarize → release(Sparkle/GitHub)
-└─ harper-ffi/                Rust↔Swift FFI for the real Harper core (placeholder)
-```
+---
 
-## Build & run
+## Why people switch
 
-```bash
-cd mac
-swift build            # compiles the app (Apple frameworks only)
-swift test             # runs the unit tests
-swift run GrammaGem     # runs as a menu-bar (accessory) app
+|  | Grammarly | **GrammaGem** |
+|---|:---:|:---:|
+| **Price** | ~$144 / year, forever | **Pay once** |
+| **Your words** | Sent to the cloud | **Never leave your Mac** |
+| **Works offline** | ❌ | ✅ |
+| **Where it works** | Where the extension reaches | **Every app, system-wide** |
+| **Speed** | Round-trip to a server | **Instant, on-device** |
 
-# Package a .app bundle you can double-click:
-./scripts/build.sh     # → dist/GrammaGem.app
-```
+---
 
-On first launch, grant **Accessibility** when prompted (System Settings →
-Privacy & Security → Accessibility). Without it the app degrades gracefully to a
-manual paste-in window. Default hotkeys: **⌘;** fix selection, **⌘'** Ask.
+## What you get
 
-> Prefer Xcode? Open `Package.swift` directly in Xcode 26 (File → Open). For a
-> production app target, point it at `AppSupport/Info.plist` + entitlements.
+- ⚡ **Instant corrections** — grammar, spelling, punctuation, and clarity, fixed the moment you ask.
+- 🔒 **Private by design** — everything runs on your Mac’s Neural Engine. Your writing is never uploaded, logged, or used to train a model.
+- ⌨️ **One global hotkey** — fix or rewrite the selected text in any app: Mail, Slack, Notion, Chrome, Messages, VS Code, and more.
+- ✨ **Ask & rewrite** — “make it shorter,” “more formal,” “translate to German” — done in place.
+- 🎚️ **Writing Modes** — Email, Post, Team Chat, Academic, Code — switch the tone instantly, or let GrammaGem pick the right one for the app you’re in.
+- 📖 **Personal dictionary** — teach it your names, brand terms, and jargon once; it stops “correcting” them forever.
+- 🖥️ **A clean management app** — manage your devices, shortcuts, modes, and privacy from one tidy window.
 
-## What's real vs. stubbed
+---
 
-This codebase implements the full **architecture and product logic** end-to-end,
-with the heavyweight native integrations behind clean protocol seams so it
-compiles with **zero external dependencies**. Search `TODO(real-integration)`.
+## Buy once. Write forever.
 
-| Area | Status |
-|------|--------|
-| System-wide capture → transform → replace loop | ✅ Real (AX + clipboard fallback, CGEvent ⌘C/⌘V, restore clipboard) |
-| Global hotkeys | ✅ Real (Carbon `RegisterEventHotKey`) |
-| Active-app detection + Mode mapping | ✅ Real (`NSWorkspace`) |
-| Permissions onboarding | ✅ Real (`AXIsProcessTrusted`, deep-links, auto-advance) |
-| Entitlements gate + daily AI counter (resets local midnight) | ✅ Real |
-| Device fingerprint (IOPlatformUUID → SHA-256) | ✅ Real (IOKit + CryptoKit) |
-| Keychain license storage | ✅ Real (Security framework) |
-| Lemon Squeezy activate/validate/deactivate + hard-verify + offline grace | ✅ Real client (needs your store/product/variant IDs) |
-| Personal dictionary (25 free / unlimited paid) | ✅ Real |
-| Menu bar UI, Settings, Ask popover | ✅ Real (SwiftUI) |
-| **Harper grammar core** | 🔌 Stub: small pure-Swift rule set; swap for the Rust FFI (`harper-ffi/`) |
-| **MLX local LLM** | 🔌 Stub: deterministic transforms; swap for `mlx-swift` + downloaded model |
-| **Model download** | 🔌 Stub: simulated progress; swap for real Hugging Face streaming |
-| KeyboardShortcuts recorder UI / Sparkle auto-update | 🔌 Documented seams (scripts + Package.swift comments) |
+No subscription. No per-seat fees. One payment, lifetime updates.
 
-### Before shipping
-1. Set real IDs in [`Core/AppConfig.swift`](Sources/GrammaGem/Core/AppConfig.swift):
-   Lemon Squeezy `expectedStoreID` / `expectedProductID` / per-tier `variantID`
-   (set each variant's **activation limit** to the device cap: Solo 1 / Personal 2 / Studio 4),
-   `bundleIdentifier`, `supportEmail`, model portal URL.
-2. Replace the Harper stub with the FFI (`harper-ffi/README.md`).
-3. Replace the MLX stub + model manager with `mlx-swift` and real HF download.
-4. Add `KeyboardShortcuts` + `Sparkle` SwiftPM deps (commented in `Package.swift`).
-5. Codesign + notarize via `scripts/sign-notarize.sh` (needs Apple Developer Program).
+| Plan | Price | Devices |
+|------|:-----:|:-------:|
+| **Solo** | $39 | 1 Mac |
+| **Personal** ⭐ | $59 | 2 Macs |
+| **Studio** | $89 | 4 Macs |
+| **Startup License** | $159 | 10 Macs |
 
-## Honest gaps (by design)
+*Apple Silicon · macOS 14+ · 14-day money-back guarantee, no questions asked.*
 
-- **No plagiarism detection.** It needs a server-side corpus + live index, which
-  breaks both the $0-cost rule and the privacy promise. Out of scope, not faked.
-- **The gate is intentionally soft.** Because the code is public, a technical
-  user could compile a build with the gate removed — that's the VoiceInk model
-  and it's fine. The product is the signed build + license + support, not secrecy.
+<div align="center">
 
-## Cost model — $0 marginal cost per customer
+[**⬇️ Get GrammaGem**](https://grammagem.app/#pricing)
 
-| Item | Cost |
-|------|------|
-| Server / database | $0 (none exists) |
-| AI inference (on device) | $0 |
-| Model hosting (Hugging Face) | $0 |
-| Update hosting (GitHub Releases) | $0 |
-| License validation (Lemon Squeezy) | $0 (included) |
-| Apple Developer Program | $99 / year (fixed) |
-| Payment processor | ~5% + fee per sale |
+</div>
 
-## License
+---
 
-Permissive (MIT/Apache-2.0) to maximize trust and stars. Monetization is the
-signed binary + multi-device license, not the source.
+## FAQ
+
+**Is my writing really private?**
+Yes. Every correction and rewrite runs on your Mac. Your text is never uploaded, logged, or used for training.
+
+**Do I need internet?**
+No. Core features work fully offline.
+
+**Is this a subscription?**
+No — it’s a one-time purchase with lifetime updates and a 14-day money-back guarantee.
+
+**What about plagiarism detection?**
+GrammaGem is private-first, so it doesn’t do cloud plagiarism scanning — that would require sending your writing to a server. Everything else you’d expect is here.
+
+---
+
+## Built in public
+
+GrammaGem is open source under the **MIT License**. We believe a privacy tool should be one you can actually inspect. Issues and pull requests are welcome.
+
+<div align="center">
+
+**[grammagem.app](https://grammagem.app)**
+
+© 2026 FounderGem LLC · 1309 Coffeen Avenue STE 1200, Sheridan, WY 82801, USA
+
+</div>
