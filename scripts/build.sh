@@ -20,7 +20,7 @@ mkdir -p "${DIST}/${APP}/Contents/MacOS" "${DIST}/${APP}/Contents/Resources"
 
 cp "${BUILD_DIR}/GrammaGem" "${DIST}/${APP}/Contents/MacOS/GrammaGem"
 cp "AppSupport/Info.plist" "${DIST}/${APP}/Contents/Info.plist"
-# cp "AppSupport/AppIcon.icns" "${DIST}/${APP}/Contents/Resources/"   # TODO: add an icon
+cp "AppSupport/AppIcon.icns" "${DIST}/${APP}/Contents/Resources/AppIcon.icns"
 
 echo "==> Built ${DIST}/${APP}"
 echo "    Run with: open \"${DIST}/${APP}\"   (grant Accessibility on first launch)"

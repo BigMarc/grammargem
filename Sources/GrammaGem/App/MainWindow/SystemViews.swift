@@ -3,42 +3,82 @@ import SwiftUI
 // MARK: - Shortcuts
 
 struct ShortcutsView: View {
+    @EnvironmentObject private var prefs: Preferences
+
     var body: some View {
         DetailScaffold(
             title: "Shortcuts",
-            subtitle: "Global hotkeys that work in every app."
+            subtitle: "Global hotkeys that work in every app. Click a shortcut to change it."
         ) {
             Card {
-                shortcutRow(name: "Fix selection", keys: ["⌘", ";"], detail: "Grammar + clarity, in place")
+                shortcutRow(
+                    name: "Fix selection",
+                    detail: "Grammar + clarity, in place",
+                    combo: $prefs.fixHotkey)
                 Divider()
-                shortcutRow(name: "Ask GrammaGem", keys: ["⌘", "'"], detail: "Rewrite with an instruction")
+                shortcutRow(
+                    name: "Ask GrammaGem",
+                    detail: "Rewrite with an instruction",
+                    combo: $prefs.askHotkey)
             }
-            Card {
-                Label("Custom shortcuts", systemImage: "wand.and.stars")
-                    .font(.headline)
-                Text("A built-in recorder for fully customizable shortcuts is on the roadmap. For now the defaults above are active system-wide.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
+            Text("Tip: include at least one modifier (⌘, ⌥, ⌃, ⇧). Press Esc while recording to cancel.")
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
-    private func shortcutRow(name: String, keys: [String], detail: String) -> some View {
+    private func shortcutRow(name: String, detail: String, combo: Binding<HotkeyCombo>) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(name).fontWeight(.medium)
                 Text(detail).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            HStack(spacing: 4) {
-                ForEach(keys, id: \.self) { k in
-                    Text(k)
-                        .font(.system(.body, design: .monospaced))
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(Color(nsColor: .controlColor), in: RoundedRectangle(cornerRadius: 6))
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.12)))
-                }
-            }
+            ShortcutRecorder(combo: combo)
         }
+    }
+}
+
+/// A small click-to-record control that captures the next modifier+key combo.
+struct ShortcutRecorder: View {
+    @Binding var combo: HotkeyCombo
+    @State private var recording = false
+    @State private var monitor: Any?
+
+    var body: some View {
+        Button {
+            recording ? stop() : start()
+        } label: {
+            Text(recording ? "Press keys…" : combo.display)
+                .font(.system(.body, design: .monospaced))
+                .frame(minWidth: 76)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(recording ? GG.emerald.opacity(0.15) : Color(nsColor: .controlColor)))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 7)
+                        .stroke(recording ? GG.emerald : Color.primary.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+        .onDisappear(perform: stop)
+    }
+
+    private func start() {
+        recording = true
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { stop(); return nil } // Esc cancels
+            if let captured = HotkeyCombo.from(event: event) {
+                combo = captured
+                stop()
+                return nil
+            }
+            return event // ignore bare keys (no modifier)
+        }
+    }
+
+    private func stop() {
+        recording = false
+        if let monitor { NSEvent.removeMonitor(monitor); self.monitor = nil }
     }
 }
 

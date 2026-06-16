@@ -27,6 +27,9 @@ final class Preferences: ObservableObject {
     @Published var appearance: Appearance { didSet { d.set(appearance.rawValue, forKey: "pref.appearance"); applyAppearance() } }
     @Published var menuBarStyle: MenuBarStyle { didSet { d.set(menuBarStyle.rawValue, forKey: "pref.menuBarStyle") } }
 
+    @Published var fixHotkey: HotkeyCombo { didSet { persist(fixHotkey, "pref.fixHotkey") } }
+    @Published var askHotkey: HotkeyCombo { didSet { persist(askHotkey, "pref.askHotkey") } }
+
     init() {
         launchAtLogin = SMAppService.mainApp.status == .enabled
         playSounds = d.object(forKey: "pref.playSounds") as? Bool ?? true
@@ -34,6 +37,17 @@ final class Preferences: ObservableObject {
         restoreClipboard = d.object(forKey: "pref.restoreClipboard") as? Bool ?? true
         appearance = Appearance(rawValue: d.string(forKey: "pref.appearance") ?? "") ?? .system
         menuBarStyle = MenuBarStyle(rawValue: d.string(forKey: "pref.menuBarStyle") ?? "") ?? .icon
+        fixHotkey = Preferences.load("pref.fixHotkey") ?? .defaultFix
+        askHotkey = Preferences.load("pref.askHotkey") ?? .defaultAsk
+    }
+
+    private func persist(_ combo: HotkeyCombo, _ key: String) {
+        if let raw = try? JSONEncoder().encode(combo) { d.set(raw, forKey: key) }
+    }
+
+    private static func load(_ key: String) -> HotkeyCombo? {
+        guard let raw = UserDefaults.standard.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(HotkeyCombo.self, from: raw)
     }
 
     private func applyLaunchAtLogin() {

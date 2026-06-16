@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import Combine
 
 /// Root application model. Owns the engines, managers, and the system-wide
 /// coordinator, wires the global hotkeys, and presents the on-demand windows.
@@ -35,6 +36,7 @@ final class AppState: ObservableObject {
     private var onboardingWindow: NSWindow?
     private var askWindow: NSWindow?
     private var mainWindow: NSWindow?
+    private var cancellables = Set<AnyCancellable>()
 
     private init() {
         let harper = HarperEngine()
@@ -64,7 +66,19 @@ final class AppState: ObservableObject {
         hotkeys.onAction = { [weak self] action in
             Task { await self?.handle(action) }
         }
-        hotkeys.registerDefaults()
+        reregisterHotkeys()
+
+        // Live-apply preference changes.
+        capture.restoreClipboard = preferences.restoreClipboard
+        preferences.$restoreClipboard
+            .sink { [weak self] value in self?.capture.restoreClipboard = value }
+            .store(in: &cancellables)
+        preferences.$fixHotkey.dropFirst()
+            .sink { [weak self] _ in self?.reregisterHotkeys() }
+            .store(in: &cancellables)
+        preferences.$askHotkey.dropFirst()
+            .sink { [weak self] _ in self?.reregisterHotkeys() }
+            .store(in: &cancellables)
 
         permissions.refresh()
         appAwareEnabled = gate.appAwareEnabled
@@ -79,6 +93,15 @@ final class AppState: ObservableObject {
     }
 
     // MARK: - Hotkey handling
+
+    /// (Re)register the global hotkeys from the current preferences.
+    func reregisterHotkeys() {
+        hotkeys.unregisterAll()
+        hotkeys.register(id: 1, keyCode: preferences.fixHotkey.keyCode,
+                         modifiers: preferences.fixHotkey.carbonModifiers, action: .fix)
+        hotkeys.register(id: 2, keyCode: preferences.askHotkey.keyCode,
+                         modifiers: preferences.askHotkey.carbonModifiers, action: .ask)
+    }
 
     func handle(_ action: HotkeyManager.Action) async {
         switch action {

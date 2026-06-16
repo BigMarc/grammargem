@@ -34,6 +34,10 @@ final class TextCapture {
 
     private let pasteboard = NSPasteboard.general
 
+    /// When true (default), the clipboard-fallback path restores the user's
+    /// previous clipboard after pasting the correction. Driven by Preferences.
+    var restoreClipboard = true
+
     // MARK: - Capture
 
     /// Try AX first; on empty/unavailable, fall back to the clipboard path.
@@ -104,8 +108,8 @@ final class TextCapture {
             writeClipboard(newText)
             sendCommandKey(CGKeyCode(kVK_ANSI_V))
             Thread.sleep(forTimeInterval: 0.10)
-            // Restore the user's previous clipboard contents.
-            if let saved = savedClipboard {
+            // Restore the user's previous clipboard contents (if they want that).
+            if restoreClipboard, let saved = savedClipboard {
                 Thread.sleep(forTimeInterval: 0.05)
                 writeClipboard(saved)
             }
