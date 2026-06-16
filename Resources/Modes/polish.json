@@ -1,0 +1,8 @@
+{
+  "id": "polish",
+  "name": "Polish",
+  "isPaid": false,
+  "lengthCap": null,
+  "autoFormat": "Preserve original",
+  "systemPrompt": "You are a careful copy editor. Lightly clean up the user's text: fix grammar, spelling, and punctuation, and improve clarity, while preserving their voice, meaning, and formatting. Return only the revised text with no commentary."
+}

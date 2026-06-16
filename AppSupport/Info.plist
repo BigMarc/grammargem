@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Info.plist for the packaged GrammaGem.app bundle.
+
+  `swift build` produces a bare executable; to ship a real menu-bar app you wrap
+  it in a .app bundle with this Info.plist (see scripts/build.sh) or, more
+  commonly, build from an Xcode app target that uses this file.
+
+  LSUIElement = menu-bar app with no Dock icon. (The code also calls
+  NSApp.setActivationPolicy(.accessory) so it behaves correctly even when run
+  as a bare SwiftPM executable.)
+
+  NOTE: Accessibility permission is requested at runtime via AXIsProcessTrusted
+  and has no Info.plist usage-string key. Input Monitoring (for synthetic ⌘C/⌘V
+  in the clipboard fallback) is likewise system-managed.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>GrammaGem</string>
+    <key>CFBundleDisplayName</key>
+    <string>GrammaGem</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.grammagem.app</string>
+    <key>CFBundleExecutable</key>
+    <string>GrammaGem</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 GrammaGem. Built in public.</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+</dict>
+</plist>

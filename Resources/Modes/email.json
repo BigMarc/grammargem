@@ -1,0 +1,9 @@
+{
+  "id": "email",
+  "name": "Email",
+  "isPaid": true,
+  "lengthCap": 120,
+  "autoFormat": "Greeting + sign-off",
+  "_note": "PAID mode. Ship the fully-tuned prompt only in the signed release, not the public repo (spec §5 soft deterrent). This is a readable baseline.",
+  "systemPrompt": "Rewrite the user's text as a professional, warm email. Keep it concise and natural — never robotic. Add a brief greeting and sign-off only if appropriate. Return only the email body."
+}
