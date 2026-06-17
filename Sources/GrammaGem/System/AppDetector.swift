@@ -32,20 +32,25 @@ final class AppDetector {
         guard AXIsProcessTrusted(),
               let app = NSWorkspace.shared.frontmostApplication else { return nil }
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
-        var winRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            axApp, kAXFocusedWindowAttribute as CFString, &winRef) == .success,
-            let winRef
-        else { return nil }
-        let window = winRef as! AXUIElement
-
-        var docRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(
-            window, kAXDocumentAttribute as CFString, &docRef) == .success,
-            let urlString = docRef as? String,
-            let host = URL(string: urlString)?.host {
+        AX.setMessagingTimeout(axApp, 0.3)
+        guard let window = AX.copyElement(axApp, kAXFocusedWindowAttribute) else { return nil }
+        if let urlString = AX.copyString(window, kAXDocumentAttribute),
+           let host = URL(string: urlString)?.host {
             return host
         }
         return nil
+    }
+
+    /// Known web browsers, where a nil domain means "URL undeterminable" (so the
+    /// page blocker should be conservative) rather than "not a web page".
+    private static let browserBundleIDs: Set<String> = [
+        "com.apple.Safari", "com.google.Chrome", "com.google.Chrome.canary",
+        "company.thebrowser.Browser", "com.microsoft.edgemac", "com.brave.Browser",
+        "org.mozilla.firefox", "com.operasoftware.Opera", "com.vivaldi.Vivaldi",
+    ]
+
+    func isBrowser(_ bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return Self.browserBundleIDs.contains(bundleID)
     }
 }

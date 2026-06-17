@@ -93,6 +93,13 @@ final class AppState: ObservableObject {
             .sink { [weak self] on in self?.liveMonitor.setEnabled(on) }
             .store(in: &cancellables)
 
+        // Auto-install the on-device AI model in the background on first use, so
+        // the AI features are ready without the user hunting for a button. The
+        // download is resumable/cancelable from the AI Model screen.
+        if !model.isModelPresent(repo: model.selectedRepo) {
+            model.startDownload()
+        }
+
         permissions.refresh()
         appAwareEnabled = gate.appAwareEnabled
         syncIgnoreList()
@@ -110,10 +117,20 @@ final class AppState: ObservableObject {
     /// (Re)register the global hotkeys from the current preferences.
     func reregisterHotkeys() {
         hotkeys.unregisterAll()
-        hotkeys.register(id: 1, keyCode: preferences.fixHotkey.keyCode,
-                         modifiers: preferences.fixHotkey.carbonModifiers, action: .fix)
-        hotkeys.register(id: 2, keyCode: preferences.askHotkey.keyCode,
-                         modifiers: preferences.askHotkey.carbonModifiers, action: .ask)
+        if !hotkeys.register(id: 1, keyCode: preferences.fixHotkey.keyCode,
+                             modifiers: preferences.fixHotkey.carbonModifiers, action: .fix) {
+            // The chosen combo was rejected (already claimed) — keep a working
+            // shortcut by falling back to the default rather than leaving none.
+            hotkeys.register(id: 1, keyCode: AppConfig.Hotkey.defaultKeyCode,
+                             modifiers: AppConfig.Hotkey.defaultModifiers, action: .fix)
+            lastStatus = "That Fix shortcut is already in use — kept the default (⌘;)."
+        }
+        if !hotkeys.register(id: 2, keyCode: preferences.askHotkey.keyCode,
+                             modifiers: preferences.askHotkey.carbonModifiers, action: .ask) {
+            hotkeys.register(id: 2, keyCode: AppConfig.Hotkey.askKeyCode,
+                             modifiers: AppConfig.Hotkey.askModifiers, action: .ask)
+            lastStatus = "That Ask shortcut is already in use — kept the default (⌘')."
+        }
     }
 
     func handle(_ action: HotkeyManager.Action) async {

@@ -9,35 +9,31 @@ struct ScannedField {
     let label: String
     let text: String
     let isFocused: Bool
+    /// Stable-ish identity for SwiftUI: AX identifier if present, else role+label+position.
+    let stableID: String
 }
 
 /// Walks the Accessibility tree of the frontmost window and collects every
 /// editable text element (text fields, text areas, combo/search boxes) with
 /// content — so GrammaGem can check *all* the text on screen, not just the one
-/// the cursor is in. Bounded so huge web/Electron trees can't stall the app.
+/// the cursor is in. Bounded so huge web/Electron trees can't stall the app, and
+/// every cross-process message has a timeout so a wedged app can't hang the scan.
+///
+/// Safe to call off the main thread (AXUIElement APIs are thread-safe).
 enum TextFieldScanner {
     static func scan(
         pid: pid_t, focused: AXUIElement?,
-        maxFields: Int = 30, maxVisited: Int = 4000
+        maxFields: Int = 30, maxVisited: Int = 3000
     ) -> [ScannedField] {
         let axApp = AXUIElementCreateApplication(pid)
-        guard let root = window(of: axApp) ?? optional(axApp) else { return [] }
+        AX.setMessagingTimeout(axApp, 0.3)
+        guard let root = AX.copyElement(axApp, kAXFocusedWindowAttribute)
+            ?? AX.copyElement(axApp, kAXMainWindowAttribute) else { return [] }
         var out: [ScannedField] = []
         var visited = 0
         walk(root, focused: focused, depth: 0, out: &out, visited: &visited,
              maxFields: maxFields, maxVisited: maxVisited)
         return out
-    }
-
-    private static func optional(_ el: AXUIElement) -> AXUIElement? { el }
-
-    private static func window(of axApp: AXUIElement) -> AXUIElement? {
-        for attr in [kAXFocusedWindowAttribute, kAXMainWindowAttribute] {
-            var ref: CFTypeRef?
-            if AXUIElementCopyAttributeValue(axApp, attr as CFString, &ref) == .success,
-               let ref { return (ref as! AXUIElement) }
-        }
-        return nil
     }
 
     private static func walk(
@@ -47,20 +43,21 @@ enum TextFieldScanner {
         if out.count >= maxFields || visited >= maxVisited || depth > 70 { return }
         visited += 1
 
-        let role = string(el, kAXRoleAttribute) ?? ""
+        let role = AX.copyString(el, kAXRoleAttribute) ?? ""
         if role == kAXTextFieldRole as String
             || role == kAXTextAreaRole as String
             || role == kAXComboBoxRole as String {
-            if let value = string(el, kAXValueAttribute),
+            if let value = AX.copyString(el, kAXValueAttribute),
                value.trimmingCharacters(in: .whitespacesAndNewlines).count >= 3 {
-                let label = string(el, kAXTitleAttribute)
-                    ?? string(el, kAXDescriptionAttribute)
-                    ?? string(el, kAXPlaceholderValueAttribute)
+                let label = AX.copyString(el, kAXTitleAttribute)
+                    ?? AX.copyString(el, kAXDescriptionAttribute)
+                    ?? AX.copyString(el, kAXPlaceholderValueAttribute)
                     ?? roleLabel(role)
                 let isFocused = focused != nil && CFEqual(el, focused!)
                 out.append(ScannedField(
                     element: el, roleName: roleLabel(role),
-                    label: label, text: value, isFocused: isFocused))
+                    label: label, text: value, isFocused: isFocused,
+                    stableID: identity(of: el, role: role, label: label)))
             }
         }
 
@@ -75,10 +72,21 @@ enum TextFieldScanner {
         }
     }
 
-    private static func string(_ el: AXUIElement, _ attr: String) -> String? {
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(el, attr as CFString, &ref) == .success else { return nil }
-        return ref as? String
+    /// A SwiftUI-stable identity that survives re-scans and text edits: prefer the
+    /// AX identifier, else fall back to role + label + on-screen position.
+    private static func identity(of el: AXUIElement, role: String, label: String) -> String {
+        if let axID = AX.copyString(el, kAXIdentifierAttribute), !axID.isEmpty {
+            return "id:\(axID)"
+        }
+        var posRef: CFTypeRef?
+        if AXUIElementCopyAttributeValue(el, kAXPositionAttribute as CFString, &posRef) == .success,
+           let posRef, CFGetTypeID(posRef) == AXValueGetTypeID() {
+            var point = CGPoint.zero
+            if AXValueGetValue(posRef as! AXValue, .cgPoint, &point) {
+                return "pos:\(role)|\(label)|\(Int(point.x)),\(Int(point.y))"
+            }
+        }
+        return "rl:\(role)|\(label)"
     }
 
     private static func roleLabel(_ role: String) -> String {

@@ -79,7 +79,7 @@ final class DailyCounter {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current // local midnight reset
+        f.timeZone = .autoupdatingCurrent // tracks the live local zone (travel/TZ change)
         return f
     }()
 

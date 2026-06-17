@@ -18,7 +18,7 @@ final class LemonSqueezyClient {
             "licenses/activate",
             params: ["license_key": key, "instance_name": instanceName])
 
-        if let err = res.error { throw mapServerError(err) }
+        if let err = res.error { throw mapServerError(err, limit: res.license_key?.activation_limit) }
         guard res.activated, let instance = res.instance else {
             throw LicenseError.serverMessage("Activation failed.")
         }
@@ -34,7 +34,7 @@ final class LemonSqueezyClient {
         if let instanceID { params["instance_id"] = instanceID }
         let res: LSValidateResponse = try await post("licenses/validate", params: params)
 
-        if let err = res.error { throw mapServerError(err) }
+        if let err = res.error { throw mapServerError(err, limit: res.license_key?.activation_limit) }
         let tier = try verifyAndResolveTier(meta: res.meta, licenseKey: res.license_key)
         return ValidationResult(
             valid: res.valid, tier: tier,
@@ -84,10 +84,10 @@ final class LemonSqueezyClient {
         }
     }
 
-    private func mapServerError(_ message: String) -> LicenseError {
+    private func mapServerError(_ message: String, limit: Int? = nil) -> LicenseError {
         let m = message.lowercased()
         if m.contains("activation limit") {
-            return .activationLimitReached(0)
+            return .activationLimitReached(limit ?? 0)
         }
         if m.contains("not found") || m.contains("invalid") {
             return .invalidKey

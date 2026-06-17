@@ -110,8 +110,8 @@ struct ModelDownloadControls: View {
         switch model.state {
         case .notDownloaded:
             VStack(alignment: .leading, spacing: 4) {
-                Button("Download model") { model.startDownload() }
-                Text("Downloads the model files from Hugging Face (about 1–2 GB). One time, then offline.")
+                Button("Download model now") { model.startDownload() }
+                Text("Installs automatically in the background on first launch (about 1–2 GB from Hugging Face). One time, then fully offline.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         case .downloading(let progress):

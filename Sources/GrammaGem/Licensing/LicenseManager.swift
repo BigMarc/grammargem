@@ -78,9 +78,27 @@ final class LicenseManager: ObservableObject {
                 Log.licensing.notice("License reported invalid by server; clearing.")
                 clearLocal()
             }
+        } catch let e as LicenseError where Self.isServerConfirmedInvalid(e) {
+            // The server actively rejected the key (refunded/disabled/wrong product)
+            // — drop it now rather than honoring it for the 30-day grace window.
+            Log.licensing.notice("License rejected by server; clearing.")
+            clearLocal()
         } catch {
             // Offline / transient: keep the cached license under the grace window.
             Log.licensing.notice("Validation deferred (offline). Cached license stands under grace.")
+        }
+    }
+
+    /// Distinguish a server-confirmed-invalid license from a transient/offline failure.
+    private static func isServerConfirmedInvalid(_ error: LicenseError) -> Bool {
+        switch error {
+        case .invalidKey, .wrongProduct:
+            return true
+        case .serverMessage(let m):
+            let s = m.lowercased()
+            return ["disabled", "expired", "inactive", "revoked", "refund"].contains { s.contains($0) }
+        case .network, .activationLimitReached:
+            return false
         }
     }
 

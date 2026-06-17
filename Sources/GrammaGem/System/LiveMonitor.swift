@@ -13,11 +13,14 @@ struct DetectedField: Identifiable {
     let isFocused: Bool
 }
 
-/// The always-on, menu-bar–resident monitor. While enabled, it periodically
-/// scans **every** text area in the frontmost window (Accessibility API), runs
-/// the offline grammar engine on each, and publishes the ones with issues — so
-/// GrammaGem reflects problems across the whole screen, not just the focused
-/// field. It stays out of excluded apps/domains and never sends text anywhere.
+/// The always-on, menu-bar–resident monitor. While enabled it periodically scans
+/// **every** text area in the frontmost window and publishes the ones with issues.
+///
+/// Performance & safety: the Accessibility-tree traversal (the part that can hang
+/// on a busy/wedged app) runs OFF the main thread with a per-message timeout; only
+/// the bounded spell/grammar pass and publish happen on the main actor. It never
+/// scans GrammaGem itself, respects the page blocker, and applies fixes against the
+/// element's *live* value so it can't overwrite text typed since the last scan.
 @MainActor
 final class LiveMonitor: ObservableObject {
     @Published private(set) var fields: [DetectedField] = []
@@ -36,8 +39,12 @@ final class LiveMonitor: ObservableObject {
     private var timer: Timer?
     private var enabled = false
     private var paused = false
+    private var scanning = false
     private var lastHash = 0
-    private let interval: TimeInterval = 1.4
+    private var scanGeneration = 0
+    private let interval: TimeInterval = 1.6
+    private let maxCheckChars = 4000
+    private let ownPID = ProcessInfo.processInfo.processIdentifier
 
     init(grammar: GrammarEngine, detector: AppDetector, exclusions: Exclusions, capture: TextCapture) {
         self.grammar = grammar
@@ -49,10 +56,10 @@ final class LiveMonitor: ObservableObject {
     func setEnabled(_ on: Bool) { enabled = on; reconcile() }
     func setPaused(_ p: Bool) { paused = p; reconcile() }
 
-    /// Re-scan now (e.g. after applying a fix).
-    func refreshSoon() { lastHash = 0; tick() }
+    /// Re-scan now (e.g. after applying a fix), superseding any in-flight scan.
+    func refreshSoon() { lastHash = 0; tick(force: true) }
 
-    // MARK: - Applying fixes
+    // MARK: - Applying fixes (always against the element's LIVE value)
 
     @discardableResult
     func fixAll() -> Int {
@@ -69,16 +76,24 @@ final class LiveMonitor: ObservableObject {
     }
 
     func apply(_ suggestion: Suggestion, in field: DetectedField) {
-        let ns = NSMutableString(string: field.text)
+        // Only apply a span edit if the field still matches the snapshot the
+        // suggestion offsets were computed against; otherwise re-scan instead of
+        // corrupting text the user has since changed.
+        guard let live = capture.currentValue(of: field.element) else { return }
+        guard live == field.text else { refreshSoon(); return }
+        let ns = NSMutableString(string: live)
         guard suggestion.location + suggestion.length <= ns.length else { return }
         ns.replaceCharacters(in: suggestion.range, with: suggestion.replacement)
         setValue(ns as String, on: field.element)
         refreshSoon()
     }
 
+    /// Correct the element's *current* value (never a stale snapshot), so any
+    /// keystrokes entered since the scan are preserved.
     private func applyCorrection(to field: DetectedField) -> Int {
-        let corrected = grammar.correct(field.text)
-        guard corrected != field.text else { return 0 }
+        guard let live = capture.currentValue(of: field.element) else { return 0 }
+        let corrected = grammar.correct(live)
+        guard corrected != live else { return 0 }
         setValue(corrected, on: field.element)
         return field.suggestions.count
     }
@@ -107,49 +122,68 @@ final class LiveMonitor: ObservableObject {
         }
     }
 
-    private func tick() {
+    private func tick(force: Bool = false) {
         guard enabled, !paused, AXIsProcessTrusted() else { clear(); return }
+        if scanning && !force { return } // don't pile up scans
         guard let app = NSWorkspace.shared.frontmostApplication else { clear(); return }
+
+        // Never scan GrammaGem's own windows.
+        if app.processIdentifier == ownPID { clear(); return }
         activeAppName = app.localizedName ?? ""
 
-        if exclusions.isBlocked(bundleID: app.bundleIdentifier, domain: detector.frontmostDomain()) {
-            clear()
-            return
-        }
+        let bundleID = app.bundleIdentifier
+        let domain = detector.frontmostDomain()
+        if exclusions.isBlocked(bundleID: bundleID, domain: domain) { clear(); return }
+        // Conservative: a blocked-domain user in a browser whose URL we can't read
+        // should not be monitored rather than risk leaking a sensitive page.
+        if domain == nil, detector.isBrowser(bundleID), exclusions.hasDomainRules { clear(); return }
 
-        let focused = systemFocusedElement()
-        let scanned = TextFieldScanner.scan(pid: app.processIdentifier, focused: focused)
+        let pid = app.processIdentifier
+        scanGeneration += 1
+        let generation = scanGeneration
+        scanning = true
+
+        // Heavy AX traversal off the main thread.
+        Task.detached(priority: .utility) {
+            let focused = LiveMonitor.systemFocusedElement()
+            let scanned = TextFieldScanner.scan(pid: pid, focused: focused)
+            await MainActor.run { self.ingest(scanned, generation: generation) }
+        }
+    }
+
+    private func ingest(_ scanned: [ScannedField], generation: Int) {
+        scanning = false
+        guard generation == scanGeneration else { return } // superseded by a newer scan
         guard !scanned.isEmpty else { clear(); return }
 
-        // Skip re-checking if nothing on screen changed.
+        // Change detection includes focus + element identity so tabbing between
+        // same-text fields still updates the focused indicator.
         var hasher = Hasher()
-        hasher.combine(app.bundleIdentifier ?? "")
-        for f in scanned { hasher.combine(f.text) }
+        for f in scanned {
+            hasher.combine(f.text)
+            hasher.combine(f.isFocused)
+            hasher.combine(f.stableID)
+        }
         let h = hasher.finalize()
         if h == lastHash { return }
         lastHash = h
 
         scannedCount = scanned.count
         var detected: [DetectedField] = []
-        for (i, f) in scanned.enumerated() {
-            let suggestions = grammar.check(f.text)
+        for f in scanned {
+            let text = f.text.count > maxCheckChars ? String(f.text.prefix(maxCheckChars)) : f.text
+            let suggestions = grammar.check(text)
             guard !suggestions.isEmpty else { continue }
             detected.append(DetectedField(
-                id: "\(f.roleName)#\(i)", label: f.label, roleName: f.roleName,
+                id: f.stableID, label: f.label, roleName: f.roleName,
                 text: f.text, suggestions: suggestions, element: f.element, isFocused: f.isFocused))
         }
-        // Focused field first.
         detected.sort { ($0.isFocused ? 0 : 1) < ($1.isFocused ? 0 : 1) }
         fields = detected
     }
 
-    private func systemFocusedElement() -> AXUIElement? {
-        let system = AXUIElementCreateSystemWide()
-        var ref: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            system, kAXFocusedUIElementAttribute as CFString, &ref) == .success, let ref
-        else { return nil }
-        return (ref as! AXUIElement)
+    private nonisolated static func systemFocusedElement() -> AXUIElement? {
+        AX.copyElement(AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute)
     }
 
     private func clear() {

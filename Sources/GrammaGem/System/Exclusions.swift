@@ -27,6 +27,10 @@ final class Exclusions: ObservableObject {
         blockedDomains = d.stringArray(forKey: domainsKey) ?? []
     }
 
+    /// True if the user has any domain rules (so we should be conservative when
+    /// a browser's URL can't be read).
+    var hasDomainRules: Bool { !blockedDomains.isEmpty }
+
     /// Whether GrammaGem should be suppressed for this frontmost context.
     func isBlocked(bundleID: String?, domain: String?) -> Bool {
         if let bundleID, blockedApps.contains(bundleID) { return true }

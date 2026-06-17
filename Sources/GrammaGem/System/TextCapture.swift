@@ -55,13 +55,7 @@ final class TextCapture {
         guard AXIsProcessTrusted() else { return nil }
         let systemWide = AXUIElementCreateSystemWide()
 
-        var focusedRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef) == .success,
-            let focusedRef
-        else { return nil }
-        // Force-cast through CFTypeRef to AXUIElement (same CF type).
-        let focused = focusedRef as! AXUIElement
+        guard let focused = AX.copyElement(systemWide, kAXFocusedUIElementAttribute) else { return nil }
 
         var valueRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(
@@ -100,19 +94,23 @@ final class TextCapture {
     func focusedFieldText() -> (text: String, element: AXUIElement)? {
         guard AXIsProcessTrusted() else { return nil }
         let systemWide = AXUIElementCreateSystemWide()
-        var focusedRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef) == .success,
-            let focusedRef
-        else { return nil }
-        let focused = focusedRef as! AXUIElement
+        guard let focused = AX.copyElement(systemWide, kAXFocusedUIElementAttribute) else { return nil }
 
-        var valueRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            focused, kAXValueAttribute as CFString, &valueRef) == .success,
-            let text = valueRef as? String
+        // Only treat genuine editable text roles as fixable, so we don't report
+        // "nothing selected" failures on sliders/steppers/custom controls.
+        let role = AX.copyString(focused, kAXRoleAttribute)
+        guard role == kAXTextFieldRole as String
+            || role == kAXTextAreaRole as String
+            || role == kAXComboBoxRole as String
         else { return nil }
+
+        guard let text = AX.copyString(focused, kAXValueAttribute) else { return nil }
         return (text, focused)
+    }
+
+    /// Re-read an element's current value (used to avoid writing stale text).
+    func currentValue(of element: AXUIElement) -> String? {
+        AX.copyString(element, kAXValueAttribute)
     }
 
     @discardableResult

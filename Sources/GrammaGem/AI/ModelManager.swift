@@ -17,6 +17,7 @@ final class ModelManager: ObservableObject {
     @Published var selectedRepo: String = AppConfig.Model.defaultRepo
 
     private var task: Task<Void, Never>?
+    private var generation = 0
 
     init() {
         if isModelPresent(repo: selectedRepo) { state = .ready }
@@ -40,25 +41,28 @@ final class ModelManager: ObservableObject {
     func startDownload(repo: String? = nil) {
         let target = repo ?? selectedRepo
         selectedRepo = target
+        if isModelPresent(repo: target) { state = .ready; return }
         task?.cancel()
-        task = Task { await self.run(repo: target) }
+        generation += 1
+        let gen = generation
+        task = Task { await self.run(repo: target, generation: gen) }
     }
 
     func cancel() {
         task?.cancel()
         task = nil
+        generation += 1 // invalidate any in-flight run's state writes
         statusText = ""
         state = isModelPresent(repo: selectedRepo) ? .ready : .notDownloaded
     }
 
     // MARK: - Download
 
-    private func run(repo: String) async {
-        if isModelPresent(repo: repo) { state = .ready; return }
+    private func run(repo: String, generation gen: Int) async {
+        if isModelPresent(repo: repo) { set(gen, .ready, ""); return }
 
         let dir = modelDir(repo)
-        state = .downloading(progress: 0)
-        statusText = "Preparing…"
+        set(gen, .downloading(progress: 0), "Preparing…")
         do {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             let files = try await fetchFileList(repo: repo)
@@ -68,7 +72,8 @@ final class ModelManager: ObservableObject {
 
             for file in files {
                 try Task.checkCancellation()
-                statusText = "Downloading \(file.path) (\(byteString(file.size)))…"
+                set(gen, .downloading(progress: min(1, Double(done) / Double(total))),
+                    "Downloading \(file.path) (\(byteString(file.size)))…")
                 let url = URL(string: "\(AppConfig.Model.huggingFaceBase)/\(repo)/resolve/main/\(file.path)")!
                 let (tmp, response) = try await URLSession.shared.download(from: url)
                 if let http = response as? HTTPURLResponse, http.statusCode != 200 {
@@ -81,22 +86,46 @@ final class ModelManager: ObservableObject {
                     try FileManager.default.removeItem(at: dest)
                 }
                 try FileManager.default.moveItem(at: tmp, to: dest)
+
+                // Reject a wrong/truncated body (e.g. an HTML interstitial served
+                // with HTTP 200) by checking the on-disk size against the expected.
+                if file.size > 0 {
+                    let actual = (try? FileManager.default.attributesOfItem(atPath: dest.path)[.size] as? Int64) ?? nil
+                    if let actual, actual != file.size {
+                        throw ModelError.corrupt(file.path)
+                    }
+                }
                 done += file.size
-                state = .downloading(progress: min(1, Double(done) / Double(total)))
+                set(gen, .downloading(progress: min(1, Double(done) / Double(total))), nil)
             }
 
             try Data().write(to: dir.appendingPathComponent(".complete"))
-            statusText = ""
-            state = .ready
+            set(gen, .ready, "")
             Log.ai.info("Model downloaded: \(repo, privacy: .public)")
         } catch is CancellationError {
-            statusText = ""
-            state = isModelPresent(repo: repo) ? .ready : .notDownloaded
+            cleanupPartial(repo: repo)
+            set(gen, isModelPresent(repo: repo) ? .ready : .notDownloaded, "")
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            cleanupPartial(repo: repo)
+            set(gen, isModelPresent(repo: repo) ? .ready : .notDownloaded, "")
         } catch {
-            statusText = ""
-            state = .failed(error.localizedDescription)
+            cleanupPartial(repo: repo)
+            set(gen, .failed(error.localizedDescription), "")
             Log.ai.error("Model download failed: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Apply a state/status update only if this run hasn't been superseded.
+    private func set(_ gen: Int, _ newState: State, _ status: String?) {
+        guard gen == generation else { return }
+        state = newState
+        if let status { statusText = status }
+    }
+
+    /// Remove an incomplete model directory so partial files don't linger.
+    private func cleanupPartial(repo: String) {
+        guard !isModelPresent(repo: repo) else { return }
+        try? FileManager.default.removeItem(at: modelDir(repo))
     }
 
     /// List the repo's files (+ sizes) from the Hugging Face tree API.
@@ -118,10 +147,12 @@ final class ModelManager: ObservableObject {
     enum ModelError: LocalizedError {
         case empty
         case http(Int, String)
+        case corrupt(String)
         var errorDescription: String? {
             switch self {
             case .empty: return "No model files were found for this repository."
             case .http(let code, let what): return "Download failed (\(code)) while fetching \(what)."
+            case .corrupt(let what): return "Downloaded file looked wrong (\(what)); please retry."
             }
         }
     }

@@ -34,7 +34,8 @@ final class HotkeyManager {
                  modifiers: AppConfig.Hotkey.askModifiers, action: .ask)
     }
 
-    func register(id: UInt32, keyCode: UInt32, modifiers: UInt32, action: Action) {
+    @discardableResult
+    func register(id: UInt32, keyCode: UInt32, modifiers: UInt32, action: Action) -> Bool {
         idToAction[id] = action
         let hotKeyID = EventHotKeyID(signature: OSType(0x47474D31), id: id) // 'GGM1'
         var ref: EventHotKeyRef?
@@ -43,9 +44,10 @@ final class HotkeyManager {
             GetEventDispatcherTarget(), 0, &ref)
         if status == noErr {
             refs.append(ref)
-        } else {
-            Log.system.error("RegisterEventHotKey failed: \(status)")
+            return true
         }
+        Log.system.error("RegisterEventHotKey failed: \(status)")
+        return false
     }
 
     func unregisterAll() {
