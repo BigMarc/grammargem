@@ -45,6 +45,15 @@ MLX_RES="${DIST}/${APP}/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resour
 mkdir -p "${MLX_RES}"
 cp "AppSupport/mlx.metallib" "${MLX_RES}/default.metallib"
 
+# Embed Sparkle.framework (auto-update) and add an rpath so the executable can
+# resolve it at @executable_path/../Frameworks. (Signed inside-out by sign-app.sh.)
+echo "==> Embedding Sparkle.framework"
+SPARKLE_FW="$(find .build -path '*Sparkle.xcframework/macos-arm64*/Sparkle.framework' -type d | head -1)"
+mkdir -p "${DIST}/${APP}/Contents/Frameworks"
+cp -R "${SPARKLE_FW}" "${DIST}/${APP}/Contents/Frameworks/"
+install_name_tool -add_rpath "@executable_path/../Frameworks" \
+  "${DIST}/${APP}/Contents/MacOS/GrammaGem" 2>/dev/null || true
+
 echo "==> Built ${DIST}/${APP}"
 lipo -info "${DIST}/${APP}/Contents/MacOS/GrammaGem"
 echo "    Run with: open \"${DIST}/${APP}\"   (grant Accessibility on first launch)"

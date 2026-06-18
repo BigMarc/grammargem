@@ -43,5 +43,19 @@
     <string>© 2026 FounderGem LLC. Built in public.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+
+    <!-- Sparkle auto-update. Appcast is served from grammagem.app and updates are
+         EdDSA-signed with the key whose public half is below (private key lives in
+         the release machine's keychain; sign with scripts/release.sh). -->
+    <key>SUFeedURL</key>
+    <string>https://grammagem.app/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>IwYch+DRgNk3gmCwe86z+SIc4sRdyDf4Z6xGpS+JXDc=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUAutomaticallyUpdate</key>
+    <false/>
 </dict>
 </plist>

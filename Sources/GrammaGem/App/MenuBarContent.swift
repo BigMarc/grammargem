@@ -24,15 +24,21 @@ struct MenuBarLabel: View {
 struct MenuBarContent: View {
     @EnvironmentObject private var app: AppState
     @ObservedObject private var monitor: LiveMonitor
+    @ObservedObject private var updater: UpdaterManager
     @Environment(\.openSettings) private var openSettings
 
     init() {
         _monitor = ObservedObject(wrappedValue: AppState.shared.liveMonitor)
+        _updater = ObservedObject(wrappedValue: AppState.shared.updater)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
+
+            if let version = updater.updateAvailableVersion {
+                updateBanner(version: version)
+            }
 
             Divider()
 
@@ -61,6 +67,7 @@ struct MenuBarContent: View {
             actionRow(title: "Open GrammaGem…", shortcut: nil) { app.showMainWindow() }
             actionRow(title: "Manage devices…", shortcut: nil) { app.showMainWindow(select: .devices) }
             actionRow(title: "Page blocker…", shortcut: nil) { app.showMainWindow(select: .exclusions) }
+            actionRow(title: "Check for Updates…", shortcut: nil) { app.updater.checkForUpdates() }
 
             Divider()
 
@@ -81,6 +88,22 @@ struct MenuBarContent: View {
         }
         .padding(14)
         .frame(width: 290)
+    }
+
+    /// Shown when Sparkle has found a newer signed build on grammagem.app.
+    private func updateBanner(version: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill").foregroundStyle(GG.emerald)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Update available").font(.callout.weight(.semibold))
+                Text("Version \(version) is ready to install").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Update") { app.updater.checkForUpdates() }
+                .buttonStyle(.borderedProminent).controlSize(.small)
+        }
+        .padding(8)
+        .background(GG.emerald.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var header: some View {

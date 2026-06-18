@@ -27,6 +27,7 @@ final class AppState: ObservableObject {
     let snippets: SnippetStore
     let exclusions: Exclusions
     let liveMonitor: LiveMonitor
+    let updater: UpdaterManager
     private let capture: TextCapture
     let coordinator: TextReplacementCoordinator
 
@@ -65,6 +66,7 @@ final class AppState: ObservableObject {
         let excl = Exclusions()
         exclusions = excl
         liveMonitor = LiveMonitor(grammar: engine, detector: detector, exclusions: excl, capture: capture)
+        updater = UpdaterManager()
         coordinator = TextReplacementCoordinator(
             capture: capture, grammar: engine, ai: ai, gate: gate, detector: detector)
     }

@@ -22,12 +22,8 @@ ENTITLEMENTS="AppSupport/GrammaGem.entitlements"
 echo "==> Building universal bundle"
 ./scripts/build.sh >/dev/null
 
-echo "==> Codesigning (Hardened Runtime)"
-codesign --force --timestamp --options runtime \
-  --entitlements "$ENTITLEMENTS" \
-  --sign "$DEV_ID" \
-  "$APP"
-codesign --verify --strict --verbose=2 "$APP"
+echo "==> Codesigning (Hardened Runtime, inside-out incl. Sparkle)"
+DEV_ID="$DEV_ID" ./scripts/sign-app.sh "$APP"
 
 echo "==> Zipping"
 ditto -c -k --keepParent "$APP" "$ZIP"

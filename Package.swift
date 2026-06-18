@@ -29,6 +29,8 @@ let package = Package(
         // On-device LLM runtime. Pinned to an exact tag (the LLM libraries still
         // ship from this repo at 2.25.9; the package name is "mlx-libraries").
         .package(url: "https://github.com/ml-explore/mlx-swift-examples.git", exact: "2.25.9"),
+        // Secure auto-updates (EdDSA-signed appcast served from grammagem.app).
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
     ],
     targets: [
         // C shim exposing libharper_ffi's C ABI (harper-ffi/include/harper.h) to Swift.
@@ -39,6 +41,7 @@ let package = Package(
                 "CHarper",
                 .product(name: "MLXLLM", package: "mlx-swift-examples"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-examples"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
             path: "Sources/GrammaGem",
             linkerSettings: [

@@ -11,6 +11,11 @@ enum GrammaGemMain {
             MLXSelfTest.run()
             return
         }
+        if let i = CommandLine.arguments.firstIndex(of: "--update-selftest") {
+            let feed = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : ""
+            UpdaterSelfTest.run(feedURL: feed)
+            return
+        }
         GrammaGemApp.main()
     }
 }
