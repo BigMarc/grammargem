@@ -53,9 +53,7 @@ final class TextCapture {
 
     private func captureViaAccessibility() -> Capture? {
         guard AXIsProcessTrusted() else { return nil }
-        let systemWide = AXUIElementCreateSystemWide()
-
-        guard let focused = AX.copyElement(systemWide, kAXFocusedUIElementAttribute) else { return nil }
+        guard let focused = AX.focusedElement() else { return nil }
 
         var valueRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(
@@ -93,8 +91,7 @@ final class TextCapture {
     /// The full text value of the focused element (not just the selection).
     func focusedFieldText() -> (text: String, element: AXUIElement)? {
         guard AXIsProcessTrusted() else { return nil }
-        let systemWide = AXUIElementCreateSystemWide()
-        guard let focused = AX.copyElement(systemWide, kAXFocusedUIElementAttribute) else { return nil }
+        guard let focused = AX.focusedElement() else { return nil }
 
         // Only treat genuine editable text roles as fixable, so we don't report
         // "nothing selected" failures on sliders/steppers/custom controls.
