@@ -38,7 +38,7 @@ final class ModelManager: ObservableObject {
 
     nonisolated static func modelsDirectory() -> URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("GrammaGem/Models", isDirectory: true)
+        return base.appendingPathComponent("GrammarGem/Models", isDirectory: true)
     }
 
     nonisolated static func modelDir(_ repo: String) -> URL {

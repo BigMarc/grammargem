@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a runnable GrammaGem.app bundle (arm64 / Apple Silicon — the MLX
+# Build a runnable GrammarGem.app bundle (arm64 / Apple Silicon — the MLX
 # on-device LLM runtime is Metal-only, so Intel is not supported).
 # Usage: ./scripts/build.sh   (run from the mac/ directory)
 set -euo pipefail
@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 CONFIG="release"
-APP="GrammaGem.app"
+APP="GrammarGem.app"
 DIST="dist"
 
 echo "==> Building Harper static lib (universal)"
@@ -24,7 +24,7 @@ echo "==> Assembling ${APP}"
 rm -rf "${DIST}/${APP}"
 mkdir -p "${DIST}/${APP}/Contents/MacOS" "${DIST}/${APP}/Contents/Resources"
 
-cp "${BIN}/GrammaGem" "${DIST}/${APP}/Contents/MacOS/GrammaGem"
+cp "${BIN}/GrammarGem" "${DIST}/${APP}/Contents/MacOS/GrammarGem"
 cp "AppSupport/Info.plist" "${DIST}/${APP}/Contents/Info.plist"
 cp "AppSupport/AppIcon.icns" "${DIST}/${APP}/Contents/Resources/AppIcon.icns"
 
@@ -52,8 +52,8 @@ SPARKLE_FW="$(find .build -path '*Sparkle.xcframework/macos-arm64*/Sparkle.frame
 mkdir -p "${DIST}/${APP}/Contents/Frameworks"
 cp -R "${SPARKLE_FW}" "${DIST}/${APP}/Contents/Frameworks/"
 install_name_tool -add_rpath "@executable_path/../Frameworks" \
-  "${DIST}/${APP}/Contents/MacOS/GrammaGem" 2>/dev/null || true
+  "${DIST}/${APP}/Contents/MacOS/GrammarGem" 2>/dev/null || true
 
 echo "==> Built ${DIST}/${APP}"
-lipo -info "${DIST}/${APP}/Contents/MacOS/GrammaGem"
+lipo -info "${DIST}/${APP}/Contents/MacOS/GrammarGem"
 echo "    Run with: open \"${DIST}/${APP}\"   (grant Accessibility on first launch)"

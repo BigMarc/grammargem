@@ -5,7 +5,7 @@ import AppKit
 /// and runs one real generation (verifies the MLX runtime + metallib headlessly),
 /// then exits. Otherwise the normal menu-bar app launches.
 @main
-enum GrammaGemMain {
+enum GrammarGemMain {
     static func main() {
         if CommandLine.arguments.contains("--mlx-selftest") {
             MLXSelfTest.run()
@@ -16,7 +16,7 @@ enum GrammaGemMain {
             UpdaterSelfTest.run(feedURL: feed)
             return
         }
-        GrammaGemApp.main()
+        GrammarGemApp.main()
     }
 }
 
@@ -47,7 +47,7 @@ enum MLXSelfTest {
 /// App entry point. A menu-bar (`LSUIElement`) SwiftUI app: the only persistent
 /// scene is the `MenuBarExtra`; Settings uses the standard scene; Onboarding and
 /// Ask are AppKit-hosted windows opened on demand (see `AppState`).
-struct GrammaGemApp: App {
+struct GrammarGemApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var app = AppState.shared
 

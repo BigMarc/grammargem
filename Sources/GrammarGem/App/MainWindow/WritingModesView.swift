@@ -15,7 +15,7 @@ struct WritingModesView: View {
     var body: some View {
         DetailScaffold(
             title: "Writing Modes",
-            subtitle: "Tune the tone for every context — or let GrammaGem pick it for you."
+            subtitle: "Tune the tone for every context — or let GrammarGem pick it for you."
         ) {
             builtInCard
             customCard
@@ -88,7 +88,7 @@ struct WritingModesView: View {
     private var appAwareCard: some View {
         Card {
             HStack { Text("App-aware switching").font(.headline); if !paid { UpgradeBadge() } }
-            Text("Map an app to a Mode and GrammaGem applies it automatically when that app is in front.")
+            Text("Map an app to a Mode and GrammarGem applies it automatically when that app is in front.")
                 .font(.callout).foregroundStyle(.secondary)
 
             if !customModes.appOverrides.isEmpty {

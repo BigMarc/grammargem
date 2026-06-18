@@ -14,12 +14,12 @@ final class UsageStats: ObservableObject {
     }
 
     /// What a Grammarly-style subscription runs per year (USD) — used only for the
-    /// honest, local "subscription you didn't pay" figure. GrammaGem is one-time.
+    /// honest, local "subscription you didn't pay" figure. GrammarGem is one-time.
     static let comparableAnnualSubscriptionUSD = 144.0
 
     @Published private(set) var data: Snapshot
 
-    private let key = "GrammaGem.usageStats"
+    private let key = "GrammarGem.usageStats"
     private let d = UserDefaults.standard
 
     private static let fmt: DateFormatter = {
@@ -64,7 +64,7 @@ final class UsageStats: ObservableObject {
     var currentStreak: Int { Self.streak(perDay: data.perDay, asOf: Date()) }
 
     /// The Grammarly subscription you DIDN'T pay: their annual price prorated over
-    /// how long you've owned GrammaGem. Honest, local, illustrative — and it only
+    /// how long you've owned GrammarGem. Honest, local, illustrative — and it only
     /// grows, which is the point of a one-time purchase (see the value plan §5).
     var subscriptionAvoidedUSD: Int {
         Self.subscriptionAvoidedUSD(

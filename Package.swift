@@ -2,7 +2,7 @@
 import PackageDescription
 import Foundation
 
-// GrammaGem — native macOS menu-bar writing assistant.
+// GrammarGem — native macOS menu-bar writing assistant.
 //
 // Layer-1 grammar is the real **Harper** core (Apache-2.0), embedded as a Rust
 // C-FFI static library (see `harper-ffi/`). Build the lib first with
@@ -18,41 +18,41 @@ let packageRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().pa
 let harperLibDir = packageRoot + "/harper-ffi/lib"
 
 let package = Package(
-    name: "GrammaGem",
+    name: "GrammarGem",
     platforms: [
         .macOS(.v14) // Apple Silicon, macOS 14+ (per the product spec)
     ],
     products: [
-        .executable(name: "GrammaGem", targets: ["GrammaGem"])
+        .executable(name: "GrammarGem", targets: ["GrammarGem"])
     ],
     dependencies: [
         // On-device LLM runtime. Pinned to an exact tag (the LLM libraries still
         // ship from this repo at 2.25.9; the package name is "mlx-libraries").
         .package(url: "https://github.com/ml-explore/mlx-swift-examples.git", exact: "2.25.9"),
-        // Secure auto-updates (EdDSA-signed appcast served from grammagem.app).
+        // Secure auto-updates (EdDSA-signed appcast served from grammargem.com).
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
     ],
     targets: [
         // C shim exposing libharper_ffi's C ABI (harper-ffi/include/harper.h) to Swift.
         .target(name: "CHarper", path: "Sources/CHarper"),
         .executableTarget(
-            name: "GrammaGem",
+            name: "GrammarGem",
             dependencies: [
                 "CHarper",
                 .product(name: "MLXLLM", package: "mlx-swift-examples"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-examples"),
                 .product(name: "Sparkle", package: "Sparkle"),
             ],
-            path: "Sources/GrammaGem",
+            path: "Sources/GrammarGem",
             linkerSettings: [
                 // Link the prebuilt Harper static library (arm64 slice).
                 .unsafeFlags(["-L\(harperLibDir)", "-lharper_ffi"])
             ]
         ),
         .testTarget(
-            name: "GrammaGemTests",
-            dependencies: ["GrammaGem"],
-            path: "Tests/GrammaGemTests"
+            name: "GrammarGemTests",
+            dependencies: ["GrammarGem"],
+            path: "Tests/GrammarGemTests"
         ),
     ]
 )

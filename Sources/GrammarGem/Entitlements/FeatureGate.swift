@@ -72,7 +72,7 @@ final class FeatureGate: ObservableObject {
 /// Free-tier AI action counter. Persists `{date, count}` in UserDefaults and
 /// resets at local midnight (compares the stored local date string to today's).
 final class DailyCounter {
-    private let key = "GrammaGem.aiActions.daily"
+    private let key = "GrammarGem.aiActions.daily"
     private let defaults = UserDefaults.standard
 
     private static let formatter: DateFormatter = {

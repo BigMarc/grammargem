@@ -17,7 +17,7 @@ struct ShortcutsView: View {
                     combo: $prefs.fixHotkey)
                 Divider()
                 shortcutRow(
-                    name: "Ask GrammaGem",
+                    name: "Ask GrammarGem",
                     detail: "Rewrite with an instruction",
                     combo: $prefs.askHotkey)
             }
@@ -141,7 +141,7 @@ struct PrivacyView: View {
             }
 
             Card {
-                Text("The only times GrammaGem uses the network").font(.headline)
+                Text("The only times GrammarGem uses the network").font(.headline)
                 networkRow("One-time AI model download", "Hugging Face, on first run")
                 Divider()
                 networkRow("License activation & checks", "To enforce your device cap")

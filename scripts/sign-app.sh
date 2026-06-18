@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Code-sign GrammaGem.app with Developer ID + Hardened Runtime, signing the
+# Code-sign GrammarGem.app with Developer ID + Hardened Runtime, signing the
 # embedded Sparkle.framework's nested helpers INSIDE-OUT first (required for a
 # valid, notarizable signature).
 #
-# Usage: ./scripts/sign-app.sh [path/to/GrammaGem.app]
+# Usage: ./scripts/sign-app.sh [path/to/GrammarGem.app]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 DEV_ID="${DEV_ID:-Developer ID Application: Marc Schultheiss (D5KT5B9Z9M)}"
-ENTITLEMENTS="AppSupport/GrammaGem.entitlements"
-APP="${1:-dist/GrammaGem.app}"
+ENTITLEMENTS="AppSupport/GrammarGem.entitlements"
+APP="${1:-dist/GrammarGem.app}"
 
 sign() { codesign --force --timestamp --options runtime --sign "$DEV_ID" "$@"; }
 

@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-/// The "page blocker": apps and domains where GrammaGem should stay completely
+/// The "page blocker": apps and domains where GrammarGem should stay completely
 /// out of the way — password managers, banking sites, anything sensitive.
 /// When the frontmost context is excluded, live monitoring and the hotkeys are
 /// suppressed.
@@ -10,8 +10,8 @@ final class Exclusions: ObservableObject {
     @Published private(set) var blockedApps: [String]      // bundle identifiers
     @Published private(set) var blockedDomains: [String]   // hostnames, e.g. "chase.com"
 
-    private let appsKey = "GrammaGem.blockedApps"
-    private let domainsKey = "GrammaGem.blockedDomains"
+    private let appsKey = "GrammarGem.blockedApps"
+    private let domainsKey = "GrammarGem.blockedDomains"
     private let d = UserDefaults.standard
 
     /// Common sensitive apps offered as one-tap suggestions in the UI.
@@ -31,7 +31,7 @@ final class Exclusions: ObservableObject {
     /// a browser's URL can't be read).
     var hasDomainRules: Bool { !blockedDomains.isEmpty }
 
-    /// Whether GrammaGem should be suppressed for this frontmost context.
+    /// Whether GrammarGem should be suppressed for this frontmost context.
     func isBlocked(bundleID: String?, domain: String?) -> Bool {
         if let bundleID, blockedApps.contains(bundleID) { return true }
         if let host = domain?.lowercased(), !host.isEmpty {

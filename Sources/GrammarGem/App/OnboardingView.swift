@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// First-run onboarding: explains why GrammaGem needs Accessibility, deep-links
+/// First-run onboarding: explains why GrammarGem needs Accessibility, deep-links
 /// to System Settings, and advances automatically the moment permission is
 /// granted (even if granted directly in System Settings).
 struct OnboardingView: View {
@@ -18,7 +18,7 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Welcome to GrammaGem")
+                        Text("Welcome to GrammarGem")
                             .font(.largeTitle.bold())
                         Text("A private, on-device writing assistant that works in every app.")
                             .foregroundStyle(.secondary)
@@ -36,7 +36,7 @@ struct OnboardingView: View {
                     stepCard(
                         number: 1,
                         title: "Turn it on everywhere",
-                        body: "GrammaGem reads the text you select and writes the correction back. macOS requires Accessibility permission for this. Your text is processed on-device and never leaves your Mac.",
+                        body: "GrammarGem reads the text you select and writes the correction back. macOS requires Accessibility permission for this. Your text is processed on-device and never leaves your Mac.",
                         granted: permissions.accessibilityTrusted
                     ) {
                         if permissions.accessibilityTrusted {
@@ -47,7 +47,7 @@ struct OnboardingView: View {
                                 Button("Open System Settings") { permissions.openAccessibilitySettings() }
                                 Button("Request permission") { permissions.requestAccessibility() }
                             }
-                            Text("This updates automatically once you flip GrammaGem on in Accessibility.")
+                            Text("This updates automatically once you flip GrammarGem on in Accessibility.")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -114,7 +114,7 @@ struct OnboardingView: View {
 /// A safe, on-rails first-run demo: a local sample with planted mistakes that
 /// the REAL grammar engine fixes in one click. It operates on a plain string
 /// (never a live Accessibility element), so it's completely risk-free — the
-/// "guaranteed visible win" before GrammaGem asks for anything.
+/// "guaranteed visible win" before GrammarGem asks for anything.
 private struct DemoStep: View {
     @State private var text = "i has wrote alot of mistakes here, and it dont look profesional"
     @State private var issues: [Suggestion] = []
@@ -151,7 +151,7 @@ private struct DemoStep: View {
     }
 
     private var headline: String {
-        if cleaned { return "Clean ✨ — GrammaGem does this in every app you type." }
+        if cleaned { return "Clean ✨ — GrammarGem does this in every app you type." }
         if issues.isEmpty { return "Checking…" }
         return "We spotted \(issues.count) thing\(issues.count == 1 ? "" : "s") to tidy up — one click fixes them."
     }

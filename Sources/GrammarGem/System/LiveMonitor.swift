@@ -19,7 +19,7 @@ struct DetectedField: Identifiable {
 /// Performance & safety: the Accessibility-tree traversal (the part that can hang
 /// on a busy/wedged app) runs OFF the main thread with a per-message timeout; only
 /// the bounded spell/grammar pass and publish happen on the main actor. It never
-/// scans GrammaGem itself, respects the page blocker, and applies fixes against the
+/// scans GrammarGem itself, respects the page blocker, and applies fixes against the
 /// element's *live* value so it can't overwrite text typed since the last scan.
 @MainActor
 final class LiveMonitor: ObservableObject {
@@ -179,7 +179,7 @@ final class LiveMonitor: ObservableObject {
         if scanning && !force { return } // don't pile up scans
         guard let app = NSWorkspace.shared.frontmostApplication else { clear(); return }
 
-        // Never scan GrammaGem's own windows.
+        // Never scan GrammarGem's own windows.
         if app.processIdentifier == ownPID { clear(); return }
         activeAppName = app.localizedName ?? ""
 

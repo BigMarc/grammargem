@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import ApplicationServices
 
-/// Tracks and requests the macOS permissions GrammaGem needs to read & replace
+/// Tracks and requests the macOS permissions GrammarGem needs to read & replace
 /// text system-wide: **Accessibility** (required) and, for the synthetic-keystroke
 /// clipboard fallback, **Input Monitoring** may also be prompted by the system.
 @MainActor

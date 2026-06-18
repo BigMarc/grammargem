@@ -15,7 +15,7 @@ struct ScannedField {
 
 /// Walks the Accessibility tree of the frontmost window and collects every
 /// editable text element (text fields, text areas, combo/search boxes) with
-/// content — so GrammaGem can check *all* the text on screen, not just the one
+/// content — so GrammarGem can check *all* the text on screen, not just the one
 /// the cursor is in. Bounded so huge web/Electron trees can't stall the app, and
 /// every cross-process message has a timeout so a wedged app can't hang the scan.
 ///

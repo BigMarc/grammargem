@@ -38,7 +38,7 @@ enum DeviceFingerprint {
     }
 
     private static func fallbackID() -> String {
-        let key = "GrammaGem.fallbackDeviceID"
+        let key = "GrammarGem.fallbackDeviceID"
         if let existing = UserDefaults.standard.string(forKey: key) { return existing }
         let id = UUID().uuidString
         UserDefaults.standard.set(id, forKey: key)

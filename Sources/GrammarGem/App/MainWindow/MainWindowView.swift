@@ -59,7 +59,7 @@ enum MainSection: String, CaseIterable, Identifiable {
     ]
 }
 
-/// The full GrammaGem management window: a clean sidebar + detail layout.
+/// The full GrammarGem management window: a clean sidebar + detail layout.
 struct MainWindowView: View {
     @State private var selection: MainSection?
 

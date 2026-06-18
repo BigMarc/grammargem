@@ -1,15 +1,15 @@
 import Foundation
 
 /// Compile-time configuration. The Lemon Squeezy identifiers are hard-coded so
-/// the licensing layer can *hard-verify* that a key belongs to GrammaGem (and to
+/// the licensing layer can *hard-verify* that a key belongs to GrammarGem (and to
 /// the claimed tier) rather than to some other Lemon Squeezy product.
 /// TODO(real-integration): replace every `TODO_*` value with your real IDs.
 enum AppConfig {
-    static let appName = "GrammaGem"
-    static let bundleIdentifier = "com.foundergem.grammagem" // TODO(real-integration)
-    static let supportEmail = "support@grammagem.app" // TODO(real-integration)
-    static let modelPortalURL = URL(string: "https://grammagem.app/license")! // TODO
-    static let websiteURL = URL(string: "https://grammagem.app")!
+    static let appName = "GrammarGem"
+    static let bundleIdentifier = "com.foundergem.grammargem" // TODO(real-integration)
+    static let supportEmail = "support@grammargem.com" // TODO(real-integration)
+    static let modelPortalURL = URL(string: "https://www.grammargem.com/license")! // TODO
+    static let websiteURL = URL(string: "https://www.grammargem.com")!
     static let appVersion = "0.1.0"
 
     // Legal entity (shown in About / legal).

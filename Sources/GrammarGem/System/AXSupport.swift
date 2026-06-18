@@ -43,7 +43,7 @@ enum AX {
     ///
     /// On recent macOS, `AXUIElementCreateSystemWide()` returns
     /// `kAXErrorCannotComplete` (-25204) for *every* query made by a background /
-    /// accessory process (which is exactly what a menu-bar app like GrammaGem is).
+    /// accessory process (which is exactly what a menu-bar app like GrammarGem is).
     /// When that happens the system-wide focused-element read yields nil and the
     /// app "sees" no text or text fields at all. Resolving the focused element
     /// through the **frontmost application's** own AX element works reliably in

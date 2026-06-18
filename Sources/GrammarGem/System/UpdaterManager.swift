@@ -1,7 +1,7 @@
 import Foundation
 import Sparkle
 
-/// Wraps Sparkle's updater. It background-checks the appcast on grammagem.app and
+/// Wraps Sparkle's updater. It background-checks the appcast on grammargem.com and
 /// publishes `updateAvailableVersion` when a newer, EdDSA-verified build exists, so
 /// the menu bar can show an "Update available" button. Triggering an update runs
 /// Sparkle's verified download + install flow.

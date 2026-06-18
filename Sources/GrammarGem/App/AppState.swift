@@ -115,7 +115,7 @@ final class AppState: ObservableObject {
         }
 
         Task { await license.validateIfNeeded() }
-        Log.app.info("GrammaGem started. Licensed: \(self.license.isLicensed, privacy: .public)")
+        Log.app.info("GrammarGem started. Licensed: \(self.license.isLicensed, privacy: .public)")
     }
 
     // MARK: - Hotkey handling
@@ -205,19 +205,19 @@ final class AppState: ObservableObject {
         return decision
     }
 
-    /// Pause/resume all of GrammaGem (hotkeys + live monitoring).
+    /// Pause/resume all of GrammarGem (hotkeys + live monitoring).
     func togglePause() {
         isPaused.toggle()
         liveMonitor.setPaused(isPaused)
         lastStatus = isPaused ? "Paused" : "Ready"
     }
 
-    /// A reason GrammaGem should stay out of the way right now, or nil.
+    /// A reason GrammarGem should stay out of the way right now, or nil.
     private func blockReason() -> String? {
-        if isPaused { return "GrammaGem is paused." }
+        if isPaused { return "GrammarGem is paused." }
         let front = detector.frontmost()
         if exclusions.isBlocked(bundleID: front?.bundleID, domain: detector.frontmostDomain()) {
-            return "GrammaGem is off for \(front?.name ?? "this app")."
+            return "GrammarGem is off for \(front?.name ?? "this app")."
         }
         return nil
     }
@@ -282,7 +282,7 @@ final class AppState: ObservableObject {
         if onboardingWindow == nil {
             let host = NSHostingController(rootView: OnboardingView().environmentObject(self))
             let win = NSWindow(contentViewController: host)
-            win.title = "Welcome to GrammaGem"
+            win.title = "Welcome to GrammarGem"
             win.styleMask = [.titled, .closable, .fullSizeContentView]
             win.setContentSize(NSSize(width: 560, height: 720))
             win.isReleasedWhenClosed = false
@@ -311,7 +311,7 @@ final class AppState: ObservableObject {
                 .environmentObject(liveMonitor)
             let host = NSHostingController(rootView: root)
             let win = NSWindow(contentViewController: host)
-            win.title = "GrammaGem"
+            win.title = "GrammarGem"
             win.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
             win.setContentSize(NSSize(width: 940, height: 660))
             win.minSize = NSSize(width: 820, height: 560)
@@ -349,7 +349,7 @@ final class AppState: ObservableObject {
         if askWindow == nil {
             let host = NSHostingController(rootView: AskView().environmentObject(self))
             let win = NSWindow(contentViewController: host)
-            win.title = "Ask GrammaGem"
+            win.title = "Ask GrammarGem"
             win.styleMask = [.titled, .closable]
             win.setContentSize(NSSize(width: 460, height: 220))
             win.isReleasedWhenClosed = false

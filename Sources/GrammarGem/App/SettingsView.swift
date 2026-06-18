@@ -25,7 +25,7 @@ private struct GeneralSettings: View {
         Form {
             Section("Shortcuts") {
                 LabeledContent("Fix selection", value: "⌘;")
-                LabeledContent("Ask GrammaGem", value: "⌘'")
+                LabeledContent("Ask GrammarGem", value: "⌘'")
                 Text("Custom shortcuts coming via the KeyboardShortcuts recorder (see README).")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -147,7 +147,7 @@ private struct DictionarySettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                TextField("Add a word GrammaGem should never correct", text: $newWord)
+                TextField("Add a word GrammarGem should never correct", text: $newWord)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit(add)
                 Button("Add", action: add).disabled(newWord.trimmingCharacters(in: .whitespaces).isEmpty)

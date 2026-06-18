@@ -91,7 +91,7 @@ struct DashboardView: View {
                         Label("Fix selection", systemImage: "checkmark.circle")
                     }
                     Button { app.showAsk() } label: {
-                        Label("Ask GrammaGem", systemImage: "sparkles")
+                        Label("Ask GrammarGem", systemImage: "sparkles")
                     }
                     if !license.isLicensed {
                         Spacer()

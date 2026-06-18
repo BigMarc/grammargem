@@ -8,8 +8,8 @@ final class CustomModesStore: ObservableObject {
     /// bundleID -> mode id (overrides the default App-Aware mapping).
     @Published private(set) var appOverrides: [String: String]
 
-    private let modesKey = "GrammaGem.customModes"
-    private let mapKey = "GrammaGem.appModeOverrides"
+    private let modesKey = "GrammarGem.customModes"
+    private let mapKey = "GrammarGem.appModeOverrides"
     private let d = UserDefaults.standard
 
     init() {

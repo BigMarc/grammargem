@@ -1,7 +1,7 @@
 import XCTest
-@testable import GrammaGem
+@testable import GrammarGem
 
-final class GrammaGemTests: XCTestCase {
+final class GrammarGemTests: XCTestCase {
 
     // MARK: - Tiers / entitlements
 
@@ -117,10 +117,10 @@ final class GrammaGemTests: XCTestCase {
     /// MLX integration end-to-end.
     func testMLXRealGenerationIfModelPresent() async throws {
         // Opt-in: `swift test` (CLI) can't place mlx-swift's metallib, so this is
-        // gated. Run it via the app's `--mlx-selftest`, or set GRAMMAGEM_MLX_TEST=1
+        // gated. Run it via the app's `--mlx-selftest`, or set GRAMMARGEM_MLX_TEST=1
         // with the metallib colocated. See scripts/build-metallib.sh.
-        guard ProcessInfo.processInfo.environment["GRAMMAGEM_MLX_TEST"] == "1" else {
-            throw XCTSkip("set GRAMMAGEM_MLX_TEST=1 (metallib colocated) to run the MLX integration test")
+        guard ProcessInfo.processInfo.environment["GRAMMARGEM_MLX_TEST"] == "1" else {
+            throw XCTSkip("set GRAMMARGEM_MLX_TEST=1 (metallib colocated) to run the MLX integration test")
         }
         guard let dir = ModelManager.completedModelDirectory(repo: AppConfig.Model.defaultRepo) else {
             throw XCTSkip("on-device model not downloaded; skipping MLX integration test")

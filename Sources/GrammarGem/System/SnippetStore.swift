@@ -13,7 +13,7 @@ struct Snippet: Codable, Identifiable, Equatable {
 final class SnippetStore: ObservableObject {
     @Published private(set) var snippets: [Snippet]
 
-    private let key = "GrammaGem.snippets"
+    private let key = "GrammarGem.snippets"
     private let d = UserDefaults.standard
 
     init() {

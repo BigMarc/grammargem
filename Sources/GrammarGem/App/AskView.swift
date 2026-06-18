@@ -8,7 +8,7 @@ struct AskView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Ask GrammaGem")
+            Text("Ask GrammarGem")
                 .font(.headline)
             Text("Acts on the text selected in the frontmost app. Runs on-device.")
                 .font(.caption)

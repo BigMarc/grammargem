@@ -8,12 +8,12 @@ struct ExclusionsView: View {
     var body: some View {
         DetailScaffold(
             title: "Page Blocker",
-            subtitle: "Keep GrammaGem out of the way in sensitive apps and sites."
+            subtitle: "Keep GrammarGem out of the way in sensitive apps and sites."
         ) {
             Card {
                 Label("How it works", systemImage: "hand.raised")
                     .font(.headline)
-                Text("When the frontmost app or website is on these lists, GrammaGem stops monitoring and the hotkeys do nothing — useful for password managers, banking, and private work.")
+                Text("When the frontmost app or website is on these lists, GrammarGem stops monitoring and the hotkeys do nothing — useful for password managers, banking, and private work.")
                     .font(.callout).foregroundStyle(.secondary)
             }
 

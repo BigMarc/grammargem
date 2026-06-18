@@ -2,7 +2,7 @@ import Foundation
 
 /// Talks to the **Lemon Squeezy License API** directly from the app — no server
 /// of ours, no database, no per-user cost (spec §6). Exposes activate / validate
-/// / deactivate and hard-verifies that a key belongs to GrammaGem + the claimed tier.
+/// / deactivate and hard-verifies that a key belongs to GrammarGem + the claimed tier.
 final class LemonSqueezyClient {
     private let session: URLSession
     private let base = AppConfig.LemonSqueezy.apiBase
@@ -54,7 +54,7 @@ final class LemonSqueezyClient {
     // MARK: - Hard verification (spec §6)
 
     /// Confirm the key is for OUR store/product, then resolve which tier its
-    /// variant corresponds to. Prevents a key from another LS product unlocking GrammaGem.
+    /// variant corresponds to. Prevents a key from another LS product unlocking GrammarGem.
     private func verifyAndResolveTier(meta: LSMeta?, licenseKey: LSLicenseKey?) throws -> Tier {
         guard let meta else { throw LicenseError.wrongProduct }
 

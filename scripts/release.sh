@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Cut a GrammaGem release and publish the Sparkle appcast (hosted on grammagem.app).
+# Cut a GrammarGem release and publish the Sparkle appcast (hosted on grammargem.com).
 #
 #   ./scripts/release.sh <version>      e.g.  ./scripts/release.sh 0.2.0
 #
 # Steps: stamp version -> build -> sign inside-out (incl. Sparkle) -> notarize +
 # staple -> zip -> generate the EdDSA-signed appcast.xml. Then upload the .zip and
-# appcast.xml to grammagem.app so every installed app shows "Update available".
+# appcast.xml to grammargem.com so every installed app shows "Update available".
 #
 # Notarization needs ONE of:
 #   NOTARY_PROFILE                              (xcrun notarytool store-credentials)
@@ -17,10 +17,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 VERSION="${1:?usage: release.sh <version>   e.g. release.sh 0.2.0}"
-APP="dist/GrammaGem.app"
+APP="dist/GrammarGem.app"
 RELDIR="dist/releases"
-ZIP="${RELDIR}/GrammaGem-${VERSION}.zip"
-DL_PREFIX="${DL_PREFIX:-https://grammagem.app/releases/}"
+ZIP="${RELDIR}/GrammarGem-${VERSION}.zip"
+DL_PREFIX="${DL_PREFIX:-https://www.grammargem.com/releases/}"
 PB=/usr/libexec/PlistBuddy
 
 # 1. Stamp the marketing version + bump the monotonic build number.
@@ -61,11 +61,11 @@ GA="$(find .build/artifacts -name generate_appcast -type f | head -1)"
 "$GA" --download-url-prefix "$DL_PREFIX" "$RELDIR"
 
 echo
-echo "✓ Release ${VERSION} built. Upload these to grammagem.app:"
+echo "✓ Release ${VERSION} built. Upload these to grammargem.com:"
 echo "    ${ZIP}"
-echo "        ->  ${DL_PREFIX}GrammaGem-${VERSION}.zip"
+echo "        ->  ${DL_PREFIX}GrammarGem-${VERSION}.zip"
 echo "    ${RELDIR}/appcast.xml"
-echo "        ->  https://grammagem.app/appcast.xml   (matches Info.plist SUFeedURL)"
+echo "        ->  https://www.grammargem.com/appcast.xml   (matches Info.plist SUFeedURL)"
 echo
 echo "  Once uploaded, installed apps show an 'Update available' button within a day"
 echo "  (or immediately via menu bar -> Check for Updates...)."

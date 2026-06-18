@@ -49,7 +49,7 @@ struct MenuBarContent: View {
             actionRow(title: "Fix selection", shortcut: app.preferences.fixHotkey.display) {
                 Task { await app.runFix() }
             }
-            actionRow(title: "Ask GrammaGem…", shortcut: app.preferences.askHotkey.display) {
+            actionRow(title: "Ask GrammarGem…", shortcut: app.preferences.askHotkey.display) {
                 app.showAsk()
             }
             if app.gate.appAwareEnabled {
@@ -57,14 +57,14 @@ struct MenuBarContent: View {
                     Task { await app.runAppAwareRewrite() }
                 }
             }
-            actionRow(title: app.isPaused ? "Resume GrammaGem" : "Pause GrammaGem", shortcut: nil) {
+            actionRow(title: app.isPaused ? "Resume GrammarGem" : "Pause GrammarGem", shortcut: nil) {
                 app.togglePause()
             }
 
             Divider()
 
             actionRow(title: "Show live issues…", shortcut: nil) { app.showLiveCheck() }
-            actionRow(title: "Open GrammaGem…", shortcut: nil) { app.showMainWindow() }
+            actionRow(title: "Open GrammarGem…", shortcut: nil) { app.showMainWindow() }
             actionRow(title: "Manage devices…", shortcut: nil) { app.showMainWindow(select: .devices) }
             actionRow(title: "Page blocker…", shortcut: nil) { app.showMainWindow(select: .exclusions) }
             actionRow(title: "Check for Updates…", shortcut: nil) { app.updater.checkForUpdates() }
@@ -90,7 +90,7 @@ struct MenuBarContent: View {
         .frame(width: 290)
     }
 
-    /// Shown when Sparkle has found a newer signed build on grammagem.app.
+    /// Shown when Sparkle has found a newer signed build on grammargem.com.
     private func updateBanner(version: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.down.circle.fill").foregroundStyle(GG.emerald)
@@ -110,7 +110,7 @@ struct MenuBarContent: View {
         HStack(spacing: 8) {
             Image(systemName: "pencil.and.scribble").foregroundStyle(.tint)
             VStack(alignment: .leading, spacing: 1) {
-                Text("GrammaGem").font(.headline)
+                Text("GrammarGem").font(.headline)
                 Text(app.license.tier.displayName + (app.license.isLicensed ? " · licensed" : " · free"))
                     .font(.caption).foregroundStyle(.secondary)
             }

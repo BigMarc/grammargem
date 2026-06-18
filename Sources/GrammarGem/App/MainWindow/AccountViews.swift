@@ -8,7 +8,7 @@ struct GeneralView: View {
     @EnvironmentObject private var permissions: Permissions
 
     var body: some View {
-        DetailScaffold(title: "General", subtitle: "Make GrammaGem feel like yours.") {
+        DetailScaffold(title: "General", subtitle: "Make GrammarGem feel like yours.") {
             Card {
                 Toggle("Launch at login", isOn: $prefs.launchAtLogin)
                 Divider()
@@ -134,7 +134,7 @@ struct AboutView: View {
                         .frame(width: 56, height: 56)
                         .background(GG.emerald.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("GrammaGem").font(.title2.bold())
+                        Text("GrammarGem").font(.title2.bold())
                         Text("Version \(AppConfig.appVersion)").foregroundStyle(.secondary)
                         Text("The private, on-device writing assistant for Mac.")
                             .font(.callout).foregroundStyle(.secondary)
@@ -153,7 +153,7 @@ struct AboutView: View {
 
             Card {
                 Text("Open source").font(.headline)
-                Text("GrammaGem is open source under the MIT License — a privacy tool you can inspect.")
+                Text("GrammarGem is open source under the MIT License — a privacy tool you can inspect.")
                     .font(.callout).foregroundStyle(.secondary)
             }
 

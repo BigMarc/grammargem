@@ -4,7 +4,7 @@ import ApplicationServices
 import Carbon.HIToolbox
 
 /// Reads the user's selected text from the frontmost app and writes a corrected
-/// value back — the mechanism that makes GrammaGem work *everywhere*.
+/// value back — the mechanism that makes GrammarGem work *everywhere*.
 ///
 /// Two paths, mirroring the spec (§4):
 ///  1. **Accessibility API** (preferred): read/write `kAXSelectedTextAttribute`
@@ -27,7 +27,7 @@ final class TextCapture {
         var errorDescription: String? {
             switch self {
             case .noSelection: return "Select some text first, then press the hotkey."
-            case .notPermitted: return "GrammaGem needs Accessibility permission to read and replace text."
+            case .notPermitted: return "GrammarGem needs Accessibility permission to read and replace text."
             }
         }
     }

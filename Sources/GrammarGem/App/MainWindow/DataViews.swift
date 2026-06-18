@@ -12,7 +12,7 @@ struct DictionaryView: View {
     var body: some View {
         DetailScaffold(
             title: "Personal Dictionary",
-            subtitle: "Words GrammaGem should never “correct” — names, brands, jargon."
+            subtitle: "Words GrammarGem should never “correct” — names, brands, jargon."
         ) {
             Card {
                 HStack {

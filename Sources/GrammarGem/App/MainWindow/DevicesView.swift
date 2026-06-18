@@ -83,7 +83,7 @@ struct DevicesView: View {
             HStack {
                 Link("Open license portal", destination: AppConfig.modelPortalURL)
                 Spacer()
-                Text("Add a Mac: install GrammaGem there and paste the same key.")
+                Text("Add a Mac: install GrammarGem there and paste the same key.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

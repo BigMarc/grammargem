@@ -15,7 +15,7 @@ cd "$ROOT"
 DD=".xcode-build"
 
 echo "==> xcodebuild (compiles mlx-swift metal kernels — a few minutes)"
-xcodebuild build -scheme GrammaGem -configuration Release \
+xcodebuild build -scheme GrammarGem -configuration Release \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$DD" -skipMacroValidation >/dev/null
 

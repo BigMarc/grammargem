@@ -1,13 +1,13 @@
 import Foundation
 
-/// The user's personal dictionary — names, brand terms, jargon GrammaGem should
+/// The user's personal dictionary — names, brand terms, jargon GrammarGem should
 /// never "correct". Feeds Harper's ignore-list and the LLM context. Capped at 25
 /// entries on free, unlimited on paid (enforced by `FeatureGate`, not here).
 @MainActor
 final class PersonalDictionary: ObservableObject {
     @Published private(set) var entries: [String]
 
-    private let key = "GrammaGem.personalDictionary"
+    private let key = "GrammarGem.personalDictionary"
     private let defaults = UserDefaults.standard
 
     init() {

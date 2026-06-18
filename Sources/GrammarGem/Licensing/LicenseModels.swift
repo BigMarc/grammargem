@@ -62,7 +62,7 @@ struct LSLicenseKey: Codable {
 }
 
 /// `meta` carries the store/product/variant identity we *hard-verify* against
-/// AppConfig so a key from another Lemon Squeezy product can't unlock GrammaGem.
+/// AppConfig so a key from another Lemon Squeezy product can't unlock GrammarGem.
 struct LSMeta: Codable {
     let store_id: Int?
     let product_id: Int?
