@@ -180,6 +180,10 @@ final class AppState: ObservableObject {
             aiHandler: { [weak self] (req: LocalEngineServer.AIRequest) async -> LocalEngineServer.AIOutcome in
                 guard let self else { return .error("GrammarGem is shutting down.") }
                 return await self.handleServerAI(req)
+            },
+            aiStreamHandler: { [weak self] (req, onChunk) -> LocalEngineServer.AIOutcome in
+                guard let self else { return .error("GrammarGem is shutting down.") }
+                return await self.handleServerAIStream(req, onChunk: onChunk)
             })
         server.start()
         localServer = server
@@ -193,6 +197,24 @@ final class AppState: ObservableObject {
             let out = try await ai.run(req.action, on: req.text, protectedTerms: dictionary.entries)
             gate.recordAIActionUsed()
             return .ok(out)
+        } catch {
+            return .error(error.localizedDescription)
+        }
+    }
+
+    /// Streaming variant for the extension: yields tokens as they generate.
+    private func handleServerAIStream(_ req: LocalEngineServer.AIRequest,
+                                      onChunk: @escaping (String) -> Void) async -> LocalEngineServer.AIOutcome {
+        if case .denied(let reason) = gate.authorizeAI(req.action) { return .error(reason) }
+        guard ai.isReady else { return .error(AIEngineError.modelNotReady.localizedDescription) }
+        var accumulated = ""
+        do {
+            for try await chunk in ai.runStreaming(req.action, on: req.text, protectedTerms: dictionary.entries) {
+                accumulated += chunk
+                onChunk(chunk)
+            }
+            gate.recordAIActionUsed()
+            return .ok(accumulated)
         } catch {
             return .error(error.localizedDescription)
         }

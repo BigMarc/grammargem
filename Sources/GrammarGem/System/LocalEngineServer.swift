@@ -36,22 +36,28 @@ final class LocalEngineServer {
     enum AIOutcome { case ok(String); case error(String) }
     /// AI action: runs the gate + model, returns the result or a user-facing error.
     typealias AIHandler = (AIRequest) async -> AIOutcome
+    /// Streaming AI action: runs the gate + model, invoking `onChunk` per token as it
+    /// generates, then returns the final outcome (full text, or an error message).
+    typealias AIStreamHandler = (AIRequest, @escaping (String) -> Void) async -> AIOutcome
 
     private let port: UInt16
     private let token: String
     private let grammarHandler: GrammarHandler
     private let aiHandler: AIHandler
+    private let aiStreamHandler: AIStreamHandler
 
     private var listener: NWListener?
     private let queue = DispatchQueue(label: "com.grammargem.localserver")
 
     init(port: UInt16, token: String,
          grammarHandler: @escaping GrammarHandler,
-         aiHandler: @escaping AIHandler) {
+         aiHandler: @escaping AIHandler,
+         aiStreamHandler: @escaping AIStreamHandler) {
         self.port = port
         self.token = token
         self.grammarHandler = grammarHandler
         self.aiHandler = aiHandler
+        self.aiStreamHandler = aiStreamHandler
     }
 
     /// A stable per-install token, persisted so the extension can be paired once.
@@ -145,6 +151,23 @@ final class LocalEngineServer {
             case .error(let msg): sendJSON(conn, status: 422, ErrorResponse(error: msg))
             }
 
+        case ("POST", "/v1/ai/stream"):
+            guard let req = decodeAI(request.body) else {
+                sendJSON(conn, status: 400, ErrorResponse(error: "bad request")); return
+            }
+            // Newline-delimited JSON frames: {"chunk":"…"} per token, then a final
+            // {"done":true} or {"error":"…"}. The 200 header goes out before tokens,
+            // so an entitlement/readiness failure surfaces as a closing error frame.
+            beginStream(conn)
+            let outcome = await aiStreamHandler(req) { [weak self] chunk in
+                self?.streamFrame(conn, ["chunk": chunk])
+            }
+            switch outcome {
+            case .ok: streamFrame(conn, ["done": true])
+            case .error(let msg): streamFrame(conn, ["error": msg])
+            }
+            endStream(conn)
+
         default:
             sendJSON(conn, status: 404, ErrorResponse(error: "not found"))
         }
@@ -199,6 +222,28 @@ final class LocalEngineServer {
     private func sendJSON<T: Encodable>(_ conn: NWConnection, status: Int, _ value: T) {
         let body = (try? JSONEncoder().encode(value)) ?? Data("{}".utf8)
         send(conn, status: status, body: body)
+    }
+
+    // MARK: - Streaming responses (newline-delimited JSON, no Content-Length)
+
+    private func beginStream(_ conn: NWConnection) {
+        var head = "HTTP/1.1 200 OK\r\n"
+        head += "Content-Type: application/x-ndjson\r\n"
+        head += "Cache-Control: no-cache\r\n"
+        head += "Access-Control-Allow-Origin: *\r\n"
+        head += "Access-Control-Allow-Headers: Content-Type, X-GrammarGem-Token\r\n"
+        head += "Connection: close\r\n\r\n"
+        conn.send(content: Data(head.utf8), completion: .contentProcessed { _ in })
+    }
+
+    private func streamFrame(_ conn: NWConnection, _ object: [String: Any]) {
+        guard var data = try? JSONSerialization.data(withJSONObject: object) else { return }
+        data.append(0x0A) // newline delimiter
+        conn.send(content: data, completion: .contentProcessed { _ in })
+    }
+
+    private func endStream(_ conn: NWConnection) {
+        conn.send(content: nil, completion: .contentProcessed { _ in conn.cancel() })
     }
 
     private func send(_ conn: NWConnection, status: Int, body: Data) {
